@@ -1,0 +1,29 @@
+{
+  "name": "arknights-nexus",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+	"type-check": "vue-tsc --build --force",
+    "preview": "vite preview",
+    "tauri": "tauri",
+	"check": "cargo check --manifest-path src-tauri/Cargo.toml"
+  },
+  "dependencies": {
+    "vue": "^3.5.13",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "pinia": "^3.0.3"
+  },
+  "devDependencies": {
+	"@tsconfig/node24": "24.0.1",
+	"@vitejs/plugin-vue": "^6.0.0",
+	"prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+	"vite": "^7.0.0",
+	"vue-tsc": "^3.0.0",
+    "@tauri-apps/cli": "^2"
+  }
+}
