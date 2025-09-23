@@ -1,21 +1,20 @@
 {
-  "extends": "@tsconfig/node24/tsconfig.json",
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
   "compilerOptions": {
     "composite": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
     "jsx": "preserve",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "useDefineForClassFields": true,
     "module": "ESNext",
+
     /* Bundler mode */
     "moduleResolution": "bundler",
     "paths": {
       "~/*": ["./src/*"]
     },
     "resolveJsonModule": true,
-    "types": ["node"],
-    "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
     "skipLibCheck": true
   },
@@ -27,13 +26,7 @@
   "noUnusedLocals": true,
   "noUnusedParameters": true,
   "noFallthroughCasesInSwitch": true,
-  "include": [
-    "vite.config.ts",
-    "vitest.config.ts",
-    "cypress.config.ts",
-    "nightwatch.conf.ts",
-    "playwright.config.ts",
-    "eslint.config.mjs"
-  ],
+  "types": ["element-plus/global", "vite/client", "unplugin-vue-router/client", "unplugin-vue-router/client"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/*.d.ts"],
   "exclude": ["src/**/__tests__/*"]
 }
