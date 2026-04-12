@@ -1,0 +1,260 @@
+import type { OperatorDetail } from '~/types/operator'
+
+function buildSkillLevels(entries: Array<{
+  description: string
+  spCost: number
+  initialSp: number
+  duration: number
+}>) {
+  return entries.map((entry, index) => ({
+    level: index + 1,
+    blackboard: [],
+    ...entry,
+  }))
+}
+
+export const operators: OperatorDetail[] = [
+  {
+    id: 'amiya',
+    name: 'Amiya',
+    codename: 'Guarding Light',
+    rarity: 5,
+    profession: 'Caster',
+    branch: 'Core Caster',
+    teams: ['Rhodes Island'],
+    nations: [],
+    groups: [],
+    thumbnailHue: 255,
+    quote: '저는 로도스의 리더이자, 당신의 동료예요.',
+    tags: ['DPS', 'Burst'],
+    traits: [
+      { groupKey: 'trait-0', description: '단일 적에게 Arts 피해를 준다.', elite: 0, level: 1, requiredPotentialRank: 0, blackboard: [] },
+      { groupKey: 'trait-1', description: '기본 공격은 마법 피해로 판정된다.', elite: 0, level: 1, requiredPotentialRank: 0, blackboard: [] },
+    ],
+    talents: [
+      { groupKey: 'talent-0', name: '정신 동조', description: '공격 속도 증가', elite: 0, level: 1, requiredPotentialRank: 0, blackboard: [] },
+      { groupKey: 'talent-1', name: '키메라', description: '체력이 낮을수록 공격력이 증가', elite: 2, level: 1, requiredPotentialRank: 0, blackboard: [] },
+    ],
+    potentials: [
+      { rank: 2, description: '배치 코스트 -1' },
+      { rank: 3, description: '제1재능 강화' },
+      { rank: 4, description: '공격력 +25' },
+      { rank: 5, description: '배치 코스트 -1' },
+      { rank: 6, description: '제2재능 강화' },
+    ],
+    modules: [],
+    archetypeDescription: '단일 대상에게 안정적으로 Arts 피해를 누적하는 정통 캐스터.',
+    eliteCaps: [50, 80, 90],
+    stats: [
+      {
+        level: 1,
+        min: { hp: 699, attack: 267, defense: 48, resistance: 20, redeployTime: 70, dpCost: 19, block: 1, attackInterval: 1.6, hpRecoveryPerSec: 0 },
+        max: { hp: 1295, attack: 455, defense: 96, resistance: 20, redeployTime: 70, dpCost: 21, block: 1, attackInterval: 1.6, hpRecoveryPerSec: 0 },
+      },
+      {
+        level: 2,
+        min: { hp: 1310, attack: 470, defense: 102, resistance: 20, redeployTime: 70, dpCost: 21, block: 1, attackInterval: 1.6, hpRecoveryPerSec: 0 },
+        max: { hp: 1820, attack: 610, defense: 135, resistance: 20, redeployTime: 70, dpCost: 23, block: 1, attackInterval: 1.6, hpRecoveryPerSec: 0 },
+      },
+      {
+        level: 3,
+        min: { hp: 1865, attack: 640, defense: 140, resistance: 20, redeployTime: 70, dpCost: 23, block: 1, attackInterval: 1.6, hpRecoveryPerSec: 0 },
+        max: { hp: 2250, attack: 735, defense: 162, resistance: 20, redeployTime: 70, dpCost: 23, block: 1, attackInterval: 1.6, hpRecoveryPerSec: 0 },
+      },
+    ],
+    skills: [
+      {
+        id: 'spirit-burst',
+        name: 'Spirit Burst',
+        recoveryType: 'auto_recovery',
+        activationType: 'manual_trigger',
+        description: '짧은 시간 동안 공격력을 강화하는 기본 화력 스킬.',
+        levels: buildSkillLevels([
+          { spCost: 24, initialSp: 0, duration: 20, description: '공격력 +20%' },
+          { spCost: 24, initialSp: 2, duration: 20, description: '공격력 +26%' },
+          { spCost: 23, initialSp: 4, duration: 20, description: '공격력 +32%' },
+          { spCost: 23, initialSp: 6, duration: 21, description: '공격력 +39%' },
+          { spCost: 22, initialSp: 8, duration: 21, description: '공격력 +46%' },
+          { spCost: 22, initialSp: 10, duration: 22, description: '공격력 +54%' },
+          { spCost: 20, initialSp: 12, duration: 25, description: '공격력 +65%' },
+        ]),
+      },
+      {
+        id: 'chimera',
+        name: 'Chimera',
+        recoveryType: 'auto_recovery',
+        activationType: 'manual_trigger',
+        description: '공격 간격을 줄이고 공격력 배율을 크게 강화하는 폭딜 스킬.',
+        levels: buildSkillLevels([
+          { spCost: 80, initialSp: 10, duration: 25, description: '공격력 +60%, 공격 간격 -0.2초' },
+          { spCost: 80, initialSp: 12, duration: 25, description: '공격력 +70%, 공격 간격 -0.2초' },
+          { spCost: 78, initialSp: 14, duration: 26, description: '공격력 +80%, 공격 간격 -0.25초' },
+          { spCost: 76, initialSp: 16, duration: 26, description: '공격력 +95%, 공격 간격 -0.25초' },
+          { spCost: 74, initialSp: 18, duration: 27, description: '공격력 +110%, 공격 간격 -0.25초' },
+          { spCost: 72, initialSp: 20, duration: 28, description: '공격력 +125%, 공격 간격 -0.3초' },
+          { spCost: 70, initialSp: 25, duration: 30, description: '공격력 +145%, 공격 간격 -0.3초' },
+        ]),
+      },
+    ],
+  },
+  {
+    id: 'silverash',
+    name: 'SilverAsh',
+    codename: 'Karlan Trade',
+    rarity: 6,
+    profession: 'Guard',
+    branch: 'Lord',
+    teams: [],
+    nations: ['Kjerag'],
+    groups: [],
+    thumbnailHue: 197,
+    quote: '전장은 협상보다 단순하지. 결과만 남으니까.',
+    tags: ['DPS', 'Support'],
+    traits: [{ groupKey: 'trait-0', description: '원거리 칸도 공격 가능하지만 피해량이 감소한다.', elite: 0, level: 1, requiredPotentialRank: 0, blackboard: [] }],
+    talents: [
+      { groupKey: 'talent-0', name: '카리스마', description: '배치 중 아군 공격력 증가', elite: 1, level: 1, requiredPotentialRank: 0, blackboard: [] },
+      { groupKey: 'talent-1', name: '독수리의 눈', description: '재배치 시 은신 감지', elite: 2, level: 1, requiredPotentialRank: 0, blackboard: [] },
+    ],
+    potentials: [
+      { rank: 2, description: '배치 코스트 -1' },
+      { rank: 3, description: '제1재능 강화' },
+      { rank: 4, description: '공격력 +35' },
+      { rank: 5, description: '배치 코스트 -1' },
+      { rank: 6, description: '제2재능 강화' },
+    ],
+    modules: [],
+    archetypeDescription: '근거리와 원거리를 겸하며, 폭발적인 광역 화력을 가진 로드 가드.',
+    eliteCaps: [50, 80, 90],
+    stats: [
+      {
+        level: 1,
+        min: { hp: 1221, attack: 343, defense: 180, resistance: 10, redeployTime: 70, dpCost: 18, block: 2, attackInterval: 1.3, hpRecoveryPerSec: 0 },
+        max: { hp: 2224, attack: 598, defense: 320, resistance: 10, redeployTime: 70, dpCost: 20, block: 2, attackInterval: 1.3, hpRecoveryPerSec: 0 },
+      },
+      {
+        level: 2,
+        min: { hp: 2250, attack: 612, defense: 330, resistance: 10, redeployTime: 70, dpCost: 20, block: 2, attackInterval: 1.3, hpRecoveryPerSec: 0 },
+        max: { hp: 3021, attack: 760, defense: 430, resistance: 10, redeployTime: 70, dpCost: 22, block: 2, attackInterval: 1.3, hpRecoveryPerSec: 0 },
+      },
+      {
+        level: 3,
+        min: { hp: 3099, attack: 778, defense: 442, resistance: 10, redeployTime: 70, dpCost: 22, block: 2, attackInterval: 1.3, hpRecoveryPerSec: 0 },
+        max: { hp: 3650, attack: 845, defense: 485, resistance: 10, redeployTime: 70, dpCost: 22, block: 2, attackInterval: 1.3, hpRecoveryPerSec: 0 },
+      },
+    ],
+    skills: [
+      {
+        id: 'power-strike-gamma',
+        name: 'Power Strike γ',
+        recoveryType: 'auto_recovery',
+        activationType: 'auto_trigger',
+        description: '다음 공격의 계수를 높이는 단순한 딜링 스킬.',
+        levels: buildSkillLevels([
+          { spCost: 5, initialSp: 0, duration: 0, description: '다음 공격 시 공격력의 190% 피해' },
+          { spCost: 5, initialSp: 0, duration: 0, description: '다음 공격 시 공격력의 200% 피해' },
+          { spCost: 5, initialSp: 0, duration: 0, description: '다음 공격 시 공격력의 210% 피해' },
+          { spCost: 4, initialSp: 0, duration: 0, description: '다음 공격 시 공격력의 225% 피해' },
+          { spCost: 4, initialSp: 0, duration: 0, description: '다음 공격 시 공격력의 240% 피해' },
+          { spCost: 4, initialSp: 1, duration: 0, description: '다음 공격 시 공격력의 255% 피해' },
+          { spCost: 4, initialSp: 2, duration: 0, description: '다음 공격 시 공격력의 280% 피해' },
+        ]),
+      },
+      {
+        id: 'truesilver-slash',
+        name: 'Truesilver Slash',
+        recoveryType: 'auto_recovery',
+        activationType: 'manual_trigger',
+        description: '공격 범위를 넓히고 공격력과 타격 수를 크게 끌어올리는 대표 스킬.',
+        levels: buildSkillLevels([
+          { spCost: 90, initialSp: 20, duration: 25, description: '공격력 +120%, 공격 범위 확대, 동시 3명 공격' },
+          { spCost: 88, initialSp: 22, duration: 25, description: '공격력 +130%, 공격 범위 확대, 동시 3명 공격' },
+          { spCost: 86, initialSp: 24, duration: 25, description: '공격력 +140%, 공격 범위 확대, 동시 3명 공격' },
+          { spCost: 84, initialSp: 26, duration: 27, description: '공격력 +155%, 공격 범위 확대, 동시 3명 공격' },
+          { spCost: 82, initialSp: 28, duration: 28, description: '공격력 +170%, 공격 범위 확대, 동시 3명 공격' },
+          { spCost: 80, initialSp: 30, duration: 29, description: '공격력 +185%, 공격 범위 확대, 동시 3명 공격' },
+          { spCost: 75, initialSp: 35, duration: 30, description: '공격력 +200%, 공격 범위 확대, 동시 3명 공격' },
+        ]),
+      },
+    ],
+  },
+  {
+    id: 'exusiai',
+    name: 'Exusiai',
+    codename: 'Penguin Logistics',
+    rarity: 6,
+    profession: 'Sniper',
+    branch: 'Marksman',
+    teams: ['Penguin Logistics'],
+    nations: [],
+    groups: [],
+    thumbnailHue: 12,
+    quote: '사격은 맡겨. 빠르고 시원하게 끝내줄게.',
+    tags: ['DPS', 'Anti-Air'],
+    traits: [{ groupKey: 'trait-0', description: '공중 유닛을 우선 공격한다.', elite: 0, level: 1, requiredPotentialRank: 0, blackboard: [] }],
+    talents: [
+      { groupKey: 'talent-0', name: '천사의 축복', description: '공격력과 최대 HP 증가', elite: 1, level: 1, requiredPotentialRank: 0, blackboard: [] },
+      { groupKey: 'talent-1', name: '사격 천재', description: '공격 속도 상승', elite: 2, level: 1, requiredPotentialRank: 0, blackboard: [] },
+    ],
+    potentials: [
+      { rank: 2, description: '배치 코스트 -1' },
+      { rank: 3, description: '제1재능 강화' },
+      { rank: 4, description: '공격력 +27' },
+      { rank: 5, description: '배치 코스트 -1' },
+      { rank: 6, description: '제2재능 강화' },
+    ],
+    modules: [],
+    archetypeDescription: '낮은 방어 적과 공중 적을 빠르게 정리하는 대표적인 고속 저격수.',
+    eliteCaps: [50, 80, 90],
+    stats: [
+      {
+        level: 1,
+        min: { hp: 711, attack: 183, defense: 57, resistance: 0, redeployTime: 70, dpCost: 11, block: 1, attackInterval: 1.0, hpRecoveryPerSec: 0 },
+        max: { hp: 1235, attack: 390, defense: 128, resistance: 0, redeployTime: 70, dpCost: 13, block: 1, attackInterval: 1.0, hpRecoveryPerSec: 0 },
+      },
+      {
+        level: 2,
+        min: { hp: 1251, attack: 405, defense: 135, resistance: 0, redeployTime: 70, dpCost: 13, block: 1, attackInterval: 1.0, hpRecoveryPerSec: 0 },
+        max: { hp: 1680, attack: 518, defense: 176, resistance: 0, redeployTime: 70, dpCost: 15, block: 1, attackInterval: 1.0, hpRecoveryPerSec: 0 },
+      },
+      {
+        level: 3,
+        min: { hp: 1710, attack: 530, defense: 182, resistance: 0, redeployTime: 70, dpCost: 15, block: 1, attackInterval: 1.0, hpRecoveryPerSec: 0 },
+        max: { hp: 1985, attack: 605, defense: 210, resistance: 0, redeployTime: 70, dpCost: 15, block: 1, attackInterval: 1.0, hpRecoveryPerSec: 0 },
+      },
+    ],
+    skills: [
+      {
+        id: 'charging-mode',
+        name: 'Charging Mode',
+        recoveryType: 'Auto Recovery',
+        activationType: 'Manual Trigger',
+        description: '공격 속도와 공격력을 동시에 올리는 안정형 스킬.',
+        levels: buildSkillLevels([
+          { spCost: 35, initialSp: 10, duration: 25, description: '공격력 +20%, 공격 속도 +20' },
+          { spCost: 35, initialSp: 11, duration: 25, description: '공격력 +24%, 공격 속도 +22' },
+          { spCost: 34, initialSp: 12, duration: 26, description: '공격력 +28%, 공격 속도 +24' },
+          { spCost: 34, initialSp: 13, duration: 26, description: '공격력 +32%, 공격 속도 +28' },
+          { spCost: 33, initialSp: 14, duration: 27, description: '공격력 +36%, 공격 속도 +32' },
+          { spCost: 32, initialSp: 15, duration: 28, description: '공격력 +40%, 공격 속도 +36' },
+          { spCost: 30, initialSp: 18, duration: 30, description: '공격력 +45%, 공격 속도 +40' },
+        ]),
+      },
+      {
+        id: 'overloading-mode',
+        name: 'Overloading Mode',
+        recoveryType: 'auto_recovery',
+        activationType: 'auto_trigger',
+        description: '다수의 탄환을 발사해 짧은 시간 동안 폭발적인 DPS를 낸다.',
+        levels: buildSkillLevels([
+          { spCost: 30, initialSp: 5, duration: 15, description: '공격 시 4연사, 스킬 종료 후 기절 5초' },
+          { spCost: 30, initialSp: 6, duration: 15, description: '공격 시 4연사, 스킬 종료 후 기절 5초' },
+          { spCost: 29, initialSp: 7, duration: 15, description: '공격 시 4연사, 스킬 종료 후 기절 5초' },
+          { spCost: 29, initialSp: 8, duration: 16, description: '공격 시 5연사, 스킬 종료 후 기절 5초' },
+          { spCost: 28, initialSp: 9, duration: 16, description: '공격 시 5연사, 스킬 종료 후 기절 5초' },
+          { spCost: 27, initialSp: 10, duration: 17, description: '공격 시 5연사, 스킬 종료 후 기절 5초' },
+          { spCost: 25, initialSp: 12, duration: 18, description: '공격 시 5연사, 스킬 종료 후 기절 5초' },
+        ]),
+      },
+    ],
+  },
+]

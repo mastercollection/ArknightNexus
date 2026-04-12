@@ -1,0 +1,1587 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$ref": "#/definitions/Welcome",
+  "definitions": {
+    "Welcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "format": "uri",
+          "qt-uri-protocols": [
+            "https"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Property"
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "$schema",
+        "properties",
+        "required",
+        "title",
+        "type"
+      ],
+      "title": "Welcome"
+    },
+    "Property": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/PropertyProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MainPowerRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "Property"
+    },
+    "PropertyProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "description": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "sortIndex": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "spTargetType": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "spTargetId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "canUseGeneralPotentialItem": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "canUseActivityPotentialItem": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "potentialItemId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "activityPotentialItemId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "classicPotentialItemId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "nationId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "groupId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "teamId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "mainPower": {
+          "$ref": "#/definitions/MainPower"
+        },
+        "subPower": {
+          "$ref": "#/definitions/SubPower"
+        },
+        "displayNumber": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "appellation": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "position": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "tagList": {
+          "$ref": "#/definitions/TagList"
+        },
+        "itemUsage": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "itemDesc": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "itemObtainApproach": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "isNotObtainable": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "isSpChar": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "maxPotentialLevel": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "rarity": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "profession": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "subProfessionId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "trait": {
+          "$ref": "#/definitions/Trait"
+        },
+        "phases": {
+          "$ref": "#/definitions/Phases"
+        },
+        "skills": {
+          "$ref": "#/definitions/Skills"
+        },
+        "displayTokenDict": {
+          "$ref": "#/definitions/DisplayTokenDict"
+        },
+        "talents": {
+          "$ref": "#/definitions/Talents"
+        },
+        "potentialRanks": {
+          "$ref": "#/definitions/PotentialRanks"
+        },
+        "favorKeyFrames": {
+          "$ref": "#/definitions/KeyFrames"
+        },
+        "allSkillLvlup": {
+          "$ref": "#/definitions/AllSkillLvlup"
+        }
+      },
+      "required": [
+        "activityPotentialItemId",
+        "allSkillLvlup",
+        "appellation",
+        "canUseActivityPotentialItem",
+        "canUseGeneralPotentialItem",
+        "classicPotentialItemId",
+        "description",
+        "displayNumber",
+        "displayTokenDict",
+        "favorKeyFrames",
+        "groupId",
+        "isNotObtainable",
+        "isSpChar",
+        "itemDesc",
+        "itemObtainApproach",
+        "itemUsage",
+        "mainPower",
+        "maxPotentialLevel",
+        "name",
+        "nationId",
+        "phases",
+        "position",
+        "potentialItemId",
+        "potentialRanks",
+        "profession",
+        "rarity",
+        "skills",
+        "sortIndex",
+        "spTargetId",
+        "spTargetType",
+        "subPower",
+        "subProfessionId",
+        "tagList",
+        "talents",
+        "teamId",
+        "trait"
+      ],
+      "title": "PropertyProperties"
+    },
+    "AllSkillLvlup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/AllSkillLvlupProperties"
+        },
+        "items": {
+          "$ref": "#/definitions/AllSkillLvlupItems"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "AllSkillLvlup"
+    },
+    "AllSkillLvlupItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/PurpleProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FluffyRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "AllSkillLvlupItems"
+    },
+    "PurpleProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unlockCond": {
+          "$ref": "#/definitions/UnlockCond"
+        },
+        "lvlUpCost": {
+          "$ref": "#/definitions/LUpCost"
+        }
+      },
+      "required": [
+        "lvlUpCost",
+        "unlockCond"
+      ],
+      "title": "PurpleProperties"
+    },
+    "LUpCost": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/LvlUpCostType"
+        },
+        "items": {
+          "$ref": "#/definitions/LvlUpCostItems"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "LUpCost"
+    },
+    "LvlUpCostItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/FluffyProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PurpleRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "LvlUpCostItems"
+    },
+    "FluffyProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "count": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "type": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "count",
+        "id",
+        "type"
+      ],
+      "title": "FluffyProperties"
+    },
+    "UnlockCond": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/UnlockCondProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UnlockCondRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "UnlockCond"
+    },
+    "UnlockCondProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "phase": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "level": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "level",
+        "phase"
+      ],
+      "title": "UnlockCondProperties"
+    },
+    "AllSkillLvlupProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "title": "AllSkillLvlupProperties"
+    },
+    "DisplayTokenDict": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/DisplayTokenDictType"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ActivityPotentialItemID"
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "DisplayTokenDict"
+    },
+    "ActivityPotentialItemID": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/ActivityPotentialItemIDType"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "ActivityPotentialItemID"
+    },
+    "KeyFrames": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/LvlUpCostType"
+        },
+        "items": {
+          "$ref": "#/definitions/FavorKeyFramesItems"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "KeyFrames"
+    },
+    "FavorKeyFramesItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/TentacledProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TentacledRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "FavorKeyFramesItems"
+    },
+    "TentacledProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "data": {
+          "$ref": "#/definitions/Data"
+        }
+      },
+      "required": [
+        "data",
+        "level"
+      ],
+      "title": "TentacledProperties"
+    },
+    "Data": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ActivityPotentialItemID"
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DataRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "Data"
+    },
+    "MainPower": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/MainPowerProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MainPowerRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "type"
+      ],
+      "title": "MainPower"
+    },
+    "MainPowerProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nationId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "groupId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "teamId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "groupId",
+        "nationId",
+        "teamId"
+      ],
+      "title": "MainPowerProperties"
+    },
+    "Phases": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "items": {
+          "$ref": "#/definitions/PhasesItems"
+        }
+      },
+      "required": [
+        "items",
+        "type"
+      ],
+      "title": "Phases"
+    },
+    "PhasesItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/StickyProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StickyRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "PhasesItems"
+    },
+    "StickyProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "characterPrefabKey": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "rangeId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "maxLevel": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "attributesKeyFrames": {
+          "$ref": "#/definitions/KeyFrames"
+        },
+        "evolveCost": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "attributesKeyFrames",
+        "characterPrefabKey",
+        "evolveCost",
+        "maxLevel",
+        "rangeId"
+      ],
+      "title": "StickyProperties"
+    },
+    "PotentialRanks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "items": {
+          "$ref": "#/definitions/PotentialRanksItems"
+        },
+        "properties": {
+          "$ref": "#/definitions/AllSkillLvlupProperties"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "PotentialRanks"
+    },
+    "PotentialRanksItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/IndigoProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IndecentRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "PotentialRanksItems"
+    },
+    "IndigoProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "description": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "buff": {
+          "$ref": "#/definitions/Buff"
+        },
+        "equivalentCost": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "buff",
+        "description",
+        "equivalentCost",
+        "type"
+      ],
+      "title": "IndigoProperties"
+    },
+    "Buff": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/DisplayTokenDictType"
+        },
+        "properties": {
+          "$ref": "#/definitions/BuffProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BuffRequired"
+          }
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Buff"
+    },
+    "BuffProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "attributes": {
+          "$ref": "#/definitions/Attributes"
+        }
+      },
+      "required": [
+        "attributes"
+      ],
+      "title": "BuffProperties"
+    },
+    "Attributes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/AttributesProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AttributesRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "Attributes"
+    },
+    "AttributesProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "abnormalFlags": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "abnormalImmunes": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "abnormalAntis": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "abnormalCombos": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "abnormalComboImmunes": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "attributeModifiers": {
+          "$ref": "#/definitions/AttributeModifiers"
+        }
+      },
+      "required": [
+        "abnormalAntis",
+        "abnormalComboImmunes",
+        "abnormalCombos",
+        "abnormalFlags",
+        "abnormalImmunes",
+        "attributeModifiers"
+      ],
+      "title": "AttributesProperties"
+    },
+    "AttributeModifiers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "items": {
+          "$ref": "#/definitions/AttributeModifiersItems"
+        }
+      },
+      "required": [
+        "items",
+        "type"
+      ],
+      "title": "AttributeModifiers"
+    },
+    "AttributeModifiersItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/IndecentProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IndigoRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "AttributeModifiersItems"
+    },
+    "IndecentProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "attributeType": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "formulaItem": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "value": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "loadFromBlackboard": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "fetchBaseValueFromSourceEntity": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "attributeType",
+        "fetchBaseValueFromSourceEntity",
+        "formulaItem",
+        "loadFromBlackboard",
+        "value"
+      ],
+      "title": "IndecentProperties"
+    },
+    "Skills": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/AllSkillLvlupProperties"
+        },
+        "items": {
+          "$ref": "#/definitions/SkillsItems"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Skills"
+    },
+    "SkillsItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/HilariousProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AmbitiousRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "SkillsItems"
+    },
+    "HilariousProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skillId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "overridePrefabKey": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "overrideTokenKey": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "levelUpCostCond": {
+          "$ref": "#/definitions/LevelUpCostCond"
+        },
+        "unlockCond": {
+          "$ref": "#/definitions/UnlockCond"
+        }
+      },
+      "required": [
+        "levelUpCostCond",
+        "overridePrefabKey",
+        "overrideTokenKey",
+        "skillId",
+        "unlockCond"
+      ],
+      "title": "HilariousProperties"
+    },
+    "LevelUpCostCond": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/AllSkillLvlupProperties"
+        },
+        "items": {
+          "$ref": "#/definitions/LevelUpCostCondItems"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "LevelUpCostCond"
+    },
+    "LevelUpCostCondItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/AmbitiousProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HilariousRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "LevelUpCostCondItems"
+    },
+    "AmbitiousProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unlockCond": {
+          "$ref": "#/definitions/UnlockCond"
+        },
+        "lvlUpTime": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "levelUpCost": {
+          "$ref": "#/definitions/LUpCost"
+        }
+      },
+      "required": [
+        "levelUpCost",
+        "lvlUpTime",
+        "unlockCond"
+      ],
+      "title": "AmbitiousProperties"
+    },
+    "SubPower": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/LvlUpCostType"
+        },
+        "items": {
+          "$ref": "#/definitions/MainPower"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "SubPower"
+    },
+    "TagList": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/LvlUpCostType"
+        },
+        "items": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "TagList"
+    },
+    "Talents": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/LvlUpCostType"
+        },
+        "items": {
+          "$ref": "#/definitions/TalentsItems"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Talents"
+    },
+    "TalentsItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/CunningProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TraitRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "type"
+      ],
+      "title": "TalentsItems"
+    },
+    "CunningProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "candidates": {
+          "$ref": "#/definitions/PurpleCandidates"
+        }
+      },
+      "required": [
+        "candidates"
+      ],
+      "title": "CunningProperties"
+    },
+    "PurpleCandidates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/LvlUpCostType"
+        },
+        "items": {
+          "$ref": "#/definitions/PurpleItems"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "PurpleCandidates"
+    },
+    "PurpleItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/MagentaProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MagentaRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "PurpleItems"
+    },
+    "MagentaProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unlockCondition": {
+          "$ref": "#/definitions/UnlockCond"
+        },
+        "requiredPotentialRank": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "prefabKey": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "name": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "description": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "rangeId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "blackboard": {
+          "$ref": "#/definitions/Blackboard"
+        },
+        "tokenKey": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "isHideTalent": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "blackboard",
+        "description",
+        "isHideTalent",
+        "name",
+        "prefabKey",
+        "rangeId",
+        "requiredPotentialRank",
+        "tokenKey",
+        "unlockCondition"
+      ],
+      "title": "MagentaProperties"
+    },
+    "Blackboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "items": {
+          "$ref": "#/definitions/BlackboardItems"
+        },
+        "properties": {
+          "$ref": "#/definitions/AllSkillLvlupProperties"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Blackboard"
+    },
+    "BlackboardItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/FriskyProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CunningRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "BlackboardItems"
+    },
+    "FriskyProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "$ref": "#/definitions/Key"
+        },
+        "value": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "valueStr": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "key",
+        "value",
+        "valueStr"
+      ],
+      "title": "FriskyProperties"
+    },
+    "Key": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/ActivityPotentialItemIDType"
+        },
+        "format": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Key"
+    },
+    "Trait": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/DisplayTokenDictType"
+        },
+        "properties": {
+          "$ref": "#/definitions/TraitProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TraitRequired"
+          }
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Trait"
+    },
+    "TraitProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "candidates": {
+          "$ref": "#/definitions/FluffyCandidates"
+        }
+      },
+      "required": [
+        "candidates"
+      ],
+      "title": "TraitProperties"
+    },
+    "FluffyCandidates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "items": {
+          "$ref": "#/definitions/FluffyItems"
+        }
+      },
+      "required": [
+        "items",
+        "type"
+      ],
+      "title": "FluffyCandidates"
+    },
+    "FluffyItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/UnlockCondType"
+        },
+        "properties": {
+          "$ref": "#/definitions/MischievousProperties"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MagentaRequired"
+          }
+        }
+      },
+      "required": [
+        "properties",
+        "required",
+        "type"
+      ],
+      "title": "FluffyItems"
+    },
+    "MischievousProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unlockCondition": {
+          "$ref": "#/definitions/UnlockCond"
+        },
+        "requiredPotentialRank": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "blackboard": {
+          "$ref": "#/definitions/Blackboard"
+        },
+        "overrideDescripton": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "prefabKey": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        },
+        "rangeId": {
+          "$ref": "#/definitions/ActivityPotentialItemID"
+        }
+      },
+      "required": [
+        "blackboard",
+        "overrideDescripton",
+        "prefabKey",
+        "rangeId",
+        "requiredPotentialRank",
+        "unlockCondition"
+      ],
+      "title": "MischievousProperties"
+    },
+    "ActivityPotentialItemIDType": {
+      "type": "string",
+      "enum": [
+        "null",
+        "string",
+        "integer",
+        "boolean",
+        "number"
+      ],
+      "title": "ActivityPotentialItemIDType"
+    },
+    "PurpleRequired": {
+      "type": "string",
+      "enum": [
+        "id",
+        "count",
+        "type"
+      ],
+      "title": "PurpleRequired"
+    },
+    "UnlockCondType": {
+      "type": "string",
+      "enum": [
+        "object",
+        "array"
+      ],
+      "title": "UnlockCondType"
+    },
+    "LvlUpCostType": {
+      "type": "string",
+      "enum": [
+        "array",
+        "null"
+      ],
+      "title": "LvlUpCostType"
+    },
+    "UnlockCondRequired": {
+      "type": "string",
+      "enum": [
+        "phase",
+        "level"
+      ],
+      "title": "UnlockCondRequired"
+    },
+    "FluffyRequired": {
+      "type": "string",
+      "enum": [
+        "unlockCond",
+        "lvlUpCost"
+      ],
+      "title": "FluffyRequired"
+    },
+    "DisplayTokenDictType": {
+      "type": "string",
+      "enum": [
+        "null",
+        "object"
+      ],
+      "title": "DisplayTokenDictType"
+    },
+    "DataRequired": {
+      "type": "string",
+      "enum": [
+        "maxHp",
+        "atk",
+        "def",
+        "magicResistance",
+        "cost",
+        "blockCnt",
+        "moveSpeed",
+        "attackSpeed",
+        "baseAttackTime",
+        "respawnTime",
+        "hpRecoveryPerSec",
+        "spRecoveryPerSec",
+        "maxDeployCount",
+        "maxDeckStackCnt",
+        "tauntLevel",
+        "massLevel",
+        "baseForceLevel",
+        "stunImmune",
+        "silenceImmune",
+        "sleepImmune",
+        "frozenImmune",
+        "levitateImmune",
+        "disarmedCombatImmune",
+        "fearedImmune",
+        "palsyImmune",
+        "attractImmune"
+      ],
+      "title": "DataRequired"
+    },
+    "TentacledRequired": {
+      "type": "string",
+      "enum": [
+        "level",
+        "data"
+      ],
+      "title": "TentacledRequired"
+    },
+    "MainPowerRequired": {
+      "type": "string",
+      "enum": [
+        "nationId",
+        "groupId",
+        "teamId",
+        "name",
+        "description",
+        "sortIndex",
+        "spTargetType",
+        "canUseGeneralPotentialItem",
+        "canUseActivityPotentialItem",
+        "potentialItemId",
+        "mainPower",
+        "displayNumber",
+        "appellation",
+        "position",
+        "tagList",
+        "itemUsage",
+        "itemDesc",
+        "itemObtainApproach",
+        "isNotObtainable",
+        "isSpChar",
+        "maxPotentialLevel",
+        "rarity",
+        "profession",
+        "subProfessionId",
+        "phases",
+        "skills",
+        "talents",
+        "potentialRanks",
+        "favorKeyFrames",
+        "allSkillLvlup",
+        "trait",
+        "activityPotentialItemId",
+        "subPower",
+        "classicPotentialItemId",
+        "displayTokenDict",
+        "spTargetId"
+      ],
+      "title": "MainPowerRequired"
+    },
+    "StickyRequired": {
+      "type": "string",
+      "enum": [
+        "characterPrefabKey",
+        "rangeId",
+        "maxLevel",
+        "attributesKeyFrames"
+      ],
+      "title": "StickyRequired"
+    },
+    "IndigoRequired": {
+      "type": "string",
+      "enum": [
+        "attributeType",
+        "formulaItem",
+        "value",
+        "loadFromBlackboard",
+        "fetchBaseValueFromSourceEntity"
+      ],
+      "title": "IndigoRequired"
+    },
+    "AttributesRequired": {
+      "type": "string",
+      "enum": [
+        "attributeModifiers"
+      ],
+      "title": "AttributesRequired"
+    },
+    "BuffRequired": {
+      "type": "string",
+      "enum": [
+        "attributes"
+      ],
+      "title": "BuffRequired"
+    },
+    "IndecentRequired": {
+      "type": "string",
+      "enum": [
+        "type",
+        "description",
+        "buff"
+      ],
+      "title": "IndecentRequired"
+    },
+    "HilariousRequired": {
+      "type": "string",
+      "enum": [
+        "unlockCond",
+        "lvlUpTime",
+        "levelUpCost"
+      ],
+      "title": "HilariousRequired"
+    },
+    "AmbitiousRequired": {
+      "type": "string",
+      "enum": [
+        "skillId",
+        "levelUpCostCond",
+        "unlockCond",
+        "overridePrefabKey",
+        "overrideTokenKey"
+      ],
+      "title": "AmbitiousRequired"
+    },
+    "CunningRequired": {
+      "type": "string",
+      "enum": [
+        "key",
+        "value",
+        "valueStr"
+      ],
+      "title": "CunningRequired"
+    },
+    "MagentaRequired": {
+      "type": "string",
+      "enum": [
+        "unlockCondition",
+        "requiredPotentialRank",
+        "prefabKey",
+        "name",
+        "description",
+        "blackboard",
+        "isHideTalent",
+        "tokenKey",
+        "rangeId",
+        "overrideDescripton"
+      ],
+      "title": "MagentaRequired"
+    },
+    "TraitRequired": {
+      "type": "string",
+      "enum": [
+        "candidates"
+      ],
+      "title": "TraitRequired"
+    }
+  }
+}

@@ -1,0 +1,107 @@
+use serde::Deserialize;
+use tauri::AppHandle;
+use std::collections::HashMap;
+
+use crate::canonical::{OperatorDetailDto, OperatorSummaryDto, RegionSyncStatus, SyncResult};
+use crate::data_sources::RegionCode;
+use crate::errors::AppError;
+use crate::service;
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SyncRegionRequest {
+    pub region: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListOperatorsRequest {
+    pub region: String,
+    pub query: Option<String>,
+    pub rarity: Option<u8>,
+    pub profession: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetOperatorDetailRequest {
+    pub region: String,
+    pub operator_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToggleOperatorFavoriteRequest {
+    pub operator_id: String,
+}
+
+#[tauri::command]
+pub async fn sync_region_data(
+    app: AppHandle,
+    request: SyncRegionRequest,
+) -> Result<SyncResult, String> {
+    let region = parse_region(&request.region)?;
+    service::sync_region_data(&app, region)
+        .await
+        .map_err(map_error)
+}
+
+#[tauri::command]
+pub fn list_operators(
+    app: AppHandle,
+    request: ListOperatorsRequest,
+) -> Result<Vec<OperatorSummaryDto>, String> {
+    let region = parse_region(&request.region)?;
+    service::list_operators(
+        &app,
+        region,
+        request.query.as_deref(),
+        request.rarity,
+        request.profession.as_deref(),
+    )
+    .map_err(map_error)
+}
+
+#[tauri::command]
+pub fn get_operator_detail(
+    app: AppHandle,
+    request: GetOperatorDetailRequest,
+) -> Result<Option<OperatorDetailDto>, String> {
+    let region = parse_region(&request.region)?;
+    service::get_operator_detail(&app, region, &request.operator_id).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn get_region_sync_status(app: AppHandle) -> Result<Vec<RegionSyncStatus>, String> {
+    service::get_region_sync_status(&app).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn get_region_terms(
+    app: AppHandle,
+    request: SyncRegionRequest,
+) -> Result<HashMap<String, String>, String> {
+    let region = parse_region(&request.region)?;
+    service::get_region_terms(&app, region).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn get_user_favorites(app: AppHandle) -> Result<Vec<String>, String> {
+    service::get_user_favorites(&app).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn toggle_operator_favorite(
+    app: AppHandle,
+    request: ToggleOperatorFavoriteRequest,
+) -> Result<bool, String> {
+    service::toggle_operator_favorite(&app, &request.operator_id).map_err(map_error)
+}
+
+fn parse_region(value: &str) -> Result<RegionCode, String> {
+    RegionCode::parse(value).ok_or_else(|| map_error(AppError::InvalidRegion))
+}
+
+fn map_error(error: AppError) -> String {
+    error.to_string()
+}

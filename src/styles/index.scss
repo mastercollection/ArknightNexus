@@ -1,11 +1,71 @@
 // import dark theme
 @use 'element-plus/theme-chalk/src/dark/css-vars.scss' as *;
 
+:root {
+  color-scheme: dark;
+  font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
+  background-color: #050914;
+}
+
+html,
 body {
-  font-family:
-    Inter, system-ui, Avenir, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
-    '微软雅黑', Arial, sans-serif;
+  font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
+  color: #f5f7ff;
+  background: #050914;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+label,
+input,
+select,
+textarea {
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[role='button'],
+[tabindex] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+label:focus,
+a:focus,
+[role='button']:focus,
+[tabindex]:focus {
+  outline: none;
+}
+
+button:focus-visible,
+label:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible,
+[tabindex]:focus-visible {
+  box-shadow: 0 0 0 2px rgba(133, 182, 255, 0.38);
+}
+
+#app {
+  min-height: 100svh;
 }
