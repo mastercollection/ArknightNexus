@@ -78,9 +78,7 @@ where
     deserialize_vec_or_empty_object(deserializer, "battleEquip.phases.parts")
 }
 
-fn deserialize_attribute_blackboard<'de, D>(
-    deserializer: D,
-) -> Result<Vec<RawBlackboard>, D::Error>
+fn deserialize_attribute_blackboard<'de, D>(deserializer: D) -> Result<Vec<RawBlackboard>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -111,18 +109,14 @@ where
     )
 }
 
-fn deserialize_trait_blackboard<'de, D>(
-    deserializer: D,
-) -> Result<Vec<RawBlackboard>, D::Error>
+fn deserialize_trait_blackboard<'de, D>(deserializer: D) -> Result<Vec<RawBlackboard>, D::Error>
 where
     D: Deserializer<'de>,
 {
     deserialize_vec_or_empty_object(deserializer, "battleEquip.trait.blackboard")
 }
 
-fn deserialize_talent_blackboard<'de, D>(
-    deserializer: D,
-) -> Result<Vec<RawBlackboard>, D::Error>
+fn deserialize_talent_blackboard<'de, D>(deserializer: D) -> Result<Vec<RawBlackboard>, D::Error>
 where
     D: Deserializer<'de>,
 {

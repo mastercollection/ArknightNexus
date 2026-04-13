@@ -1,34 +1,40 @@
 use chrono::Utc;
 use reqwest::header::{ETAG, LAST_MODIFIED};
 use serde::de::DeserializeOwned;
-use tauri::AppHandle;
 use std::collections::HashMap;
+use tauri::AppHandle;
 
 use crate::cache::{
     load_snapshot, load_statuses, load_summary_snapshot, load_terms, save_snapshot, save_terms,
 };
 use crate::cache_model::{
-    CachedBlackboardEntry, CachedBuildingCost, CachedBuildingRequireRoom, CachedItemBuildingProduct, CachedItemStageDrop, CachedManufactFormula, CachedModuleBattlePart, CachedModuleBattlePhase, CachedModuleCost,
-    CachedModuleTalentCandidate, CachedModuleTraitCandidate, CachedItem, CachedOperator,
-    CachedOperatorModule, CachedOperatorPotential, CachedOperatorRange, CachedOperatorRangeGrid,
-    CachedOperatorSkill, CachedOperatorSkillLevel, CachedOperatorStatPoint,
-    CachedOperatorStatProgression, CachedOperatorTalent, CachedOperatorTrait,
-    CachedOperatorSummary, CachedWorkshopExtraOutcome, CachedWorkshopFormula, CachedOperatorUpgradeCost, CachedOperatorUpgradeCostStage,
+    CachedBlackboardEntry, CachedBuildingCost, CachedBuildingRequireRoom, CachedItem,
+    CachedItemBuildingProduct, CachedItemStageDrop, CachedManufactFormula, CachedModuleBattlePart,
+    CachedModuleBattlePhase, CachedModuleCost, CachedModuleTalentCandidate,
+    CachedModuleTraitCandidate, CachedOperator, CachedOperatorModule, CachedOperatorPotential,
+    CachedOperatorRange, CachedOperatorRangeGrid, CachedOperatorSkill, CachedOperatorSkillLevel,
+    CachedOperatorStatPoint, CachedOperatorStatProgression, CachedOperatorSummary,
+    CachedOperatorTalent, CachedOperatorTrait, CachedOperatorUpgradeCost,
+    CachedOperatorUpgradeCostStage, CachedWorkshopExtraOutcome, CachedWorkshopFormula,
 };
 use crate::canonical::{
-    BuildingCostDto, BuildingFormulaBundleDto, BuildingRequireRoomDto, ItemBuildingProductDto, ItemDto, ItemStageDropDto, ManufactFormulaDto, ModuleCostDto, OperatorBlackboardEntryDto, OperatorDetailDto, OperatorModuleBattlePartDto,
-    OperatorModuleBattlePhaseDto, OperatorModuleDto, OperatorModuleTalentCandidateDto,
-    OperatorModuleTraitCandidateDto, OperatorPotentialDto, OperatorRangeDto,
-    OperatorRangeGridDto, OperatorSkillDto, OperatorSkillLevelDto, OperatorStatPointDto,
-    OperatorStatProgressionDto, OperatorSummaryDto, OperatorTalentDto, OperatorTraitDto, OperatorUpgradeCostDto, OperatorUpgradeCostStageDto, UserPlanDto, UserPlanOperatorDto,
-    RegionSyncStatus, SyncResult, WorkshopExtraOutcomeDto, WorkshopFormulaDto,
+    BuildingCostDto, BuildingFormulaBundleDto, BuildingRequireRoomDto, ItemBuildingProductDto,
+    ItemDto, ItemStageDropDto, ManufactFormulaDto, ModuleCostDto, OperatorBlackboardEntryDto,
+    OperatorDetailDto, OperatorModuleBattlePartDto, OperatorModuleBattlePhaseDto,
+    OperatorModuleDto, OperatorModuleTalentCandidateDto, OperatorModuleTraitCandidateDto,
+    OperatorPotentialDto, OperatorRangeDto, OperatorRangeGridDto, OperatorSkillDto,
+    OperatorSkillLevelDto, OperatorStatPointDto, OperatorStatProgressionDto, OperatorSummaryDto,
+    OperatorTalentDto, OperatorTraitDto, OperatorUpgradeCostDto, OperatorUpgradeCostStageDto,
+    RegionSyncStatus, SyncResult, UserPlanDto, UserPlanOperatorDto, WorkshopExtraOutcomeDto,
+    WorkshopFormulaDto,
 };
 use crate::data_sources::RegionCode;
 use crate::errors::AppError;
 use crate::normalizers::{normalize_building_data, normalize_items, normalize_operators};
 use crate::raw_models::{
-    into_power_names, RawBattleEquipTable, RawCharacterTable, RawFavorTable, RawGameDataConst,
-    RawBuildingData, RawHandbookTeamTable, RawItemTable, RawRangeTable, RawSkillTable, RawUniequipTable,
+    into_power_names, RawBattleEquipTable, RawBuildingData, RawCharacterTable, RawFavorTable,
+    RawGameDataConst, RawHandbookTeamTable, RawItemTable, RawRangeTable, RawSkillTable,
+    RawUniequipTable,
 };
 use crate::user_store;
 
@@ -295,6 +301,14 @@ pub fn get_user_plan(app: &AppHandle) -> Result<UserPlanDto, AppError> {
     user_store::load_plan(app)
 }
 
+pub fn export_user_data(app: &AppHandle) -> Result<String, AppError> {
+    user_store::export_user_data_json(app)
+}
+
+pub fn import_user_data(app: &AppHandle, content: &str) -> Result<(), AppError> {
+    user_store::import_user_data_json(app, content)
+}
+
 pub fn save_user_plan_selection(
     app: &AppHandle,
     operator_ids: &[String],
@@ -377,8 +391,16 @@ fn cached_to_detail(operator: CachedOperator) -> OperatorDetailDto {
         thumbnail_hue: operator.thumbnail_hue,
         quote: operator.quote,
         tags: operator.tags,
-        traits: operator.traits.into_iter().map(cached_trait_to_dto).collect(),
-        talents: operator.talents.into_iter().map(cached_talent_to_dto).collect(),
+        traits: operator
+            .traits
+            .into_iter()
+            .map(cached_trait_to_dto)
+            .collect(),
+        talents: operator
+            .talents
+            .into_iter()
+            .map(cached_talent_to_dto)
+            .collect(),
         potentials: operator
             .potentials
             .into_iter()
@@ -404,8 +426,16 @@ fn cached_to_detail(operator: CachedOperator) -> OperatorDetailDto {
             .into_iter()
             .map(cached_upgrade_cost_stage_to_dto)
             .collect(),
-        stats: operator.stats.into_iter().map(cached_stats_to_dto).collect(),
-        skills: operator.skills.into_iter().map(cached_skill_to_dto).collect(),
+        stats: operator
+            .stats
+            .into_iter()
+            .map(cached_stats_to_dto)
+            .collect(),
+        skills: operator
+            .skills
+            .into_iter()
+            .map(cached_skill_to_dto)
+            .collect(),
     }
 }
 
@@ -461,8 +491,14 @@ fn cached_module_to_dto(module: CachedOperatorModule) -> OperatorModuleDto {
         unlock_favors: module.unlock_favors,
         unlock_favor_percents: module.unlock_favor_percents,
         item_cost: module.item_cost.map(|items| {
-            items.into_iter()
-                .map(|(key, value)| (key, value.into_iter().map(cached_module_cost_to_dto).collect()))
+            items
+                .into_iter()
+                .map(|(key, value)| {
+                    (
+                        key,
+                        value.into_iter().map(cached_module_cost_to_dto).collect(),
+                    )
+                })
                 .collect()
         }),
         is_special_equip: module.is_special_equip,
@@ -487,7 +523,9 @@ fn cached_module_cost_to_dto(cost: CachedModuleCost) -> ModuleCostDto {
     }
 }
 
-fn cached_module_battle_phase_to_dto(phase: CachedModuleBattlePhase) -> OperatorModuleBattlePhaseDto {
+fn cached_module_battle_phase_to_dto(
+    phase: CachedModuleBattlePhase,
+) -> OperatorModuleBattlePhaseDto {
     OperatorModuleBattlePhaseDto {
         equip_level: phase.equip_level,
         parts: phase
@@ -600,7 +638,9 @@ fn cached_skill_to_dto(skill: CachedOperatorSkill) -> OperatorSkillDto {
     }
 }
 
-fn cached_upgrade_cost_stage_to_dto(cost: CachedOperatorUpgradeCostStage) -> OperatorUpgradeCostStageDto {
+fn cached_upgrade_cost_stage_to_dto(
+    cost: CachedOperatorUpgradeCostStage,
+) -> OperatorUpgradeCostStageDto {
     OperatorUpgradeCostStageDto {
         level: cost.level,
         costs: cost
@@ -687,7 +727,11 @@ fn cached_manufact_formula_to_dto(entry: CachedManufactFormula) -> ManufactFormu
         cost_point: entry.cost_point,
         formula_type: entry.formula_type,
         buff_type: entry.buff_type,
-        costs: entry.costs.into_iter().map(cached_building_cost_to_dto).collect(),
+        costs: entry
+            .costs
+            .into_iter()
+            .map(cached_building_cost_to_dto)
+            .collect(),
         require_rooms: entry
             .require_rooms
             .into_iter()
@@ -713,7 +757,11 @@ fn cached_workshop_formula_to_dto(entry: CachedWorkshopFormula) -> WorkshopFormu
             .into_iter()
             .map(cached_workshop_extra_outcome_to_dto)
             .collect(),
-        costs: entry.costs.into_iter().map(cached_building_cost_to_dto).collect(),
+        costs: entry
+            .costs
+            .into_iter()
+            .map(cached_building_cost_to_dto)
+            .collect(),
         require_rooms: entry
             .require_rooms
             .into_iter()
@@ -738,7 +786,9 @@ fn cached_building_require_room_to_dto(entry: CachedBuildingRequireRoom) -> Buil
     }
 }
 
-fn cached_workshop_extra_outcome_to_dto(entry: CachedWorkshopExtraOutcome) -> WorkshopExtraOutcomeDto {
+fn cached_workshop_extra_outcome_to_dto(
+    entry: CachedWorkshopExtraOutcome,
+) -> WorkshopExtraOutcomeDto {
     WorkshopExtraOutcomeDto {
         weight: entry.weight,
         item_id: entry.item_id,

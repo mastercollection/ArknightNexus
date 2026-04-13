@@ -1,6 +1,6 @@
 use serde::Deserialize;
-use tauri::AppHandle;
 use std::collections::HashMap;
+use tauri::AppHandle;
 
 use crate::canonical::{
     BuildingFormulaBundleDto, ItemDto, OperatorDetailDto, OperatorSummaryDto, RegionSyncStatus,
@@ -65,6 +65,12 @@ pub struct SaveUserPlanOperatorRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ImportUserDataRequest {
+    pub content: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RemoveUserPlanOperatorRequest {
     pub operator_id: String,
 }
@@ -97,10 +103,7 @@ pub fn list_operators(
 }
 
 #[tauri::command]
-pub fn list_items(
-    app: AppHandle,
-    request: ListItemsRequest,
-) -> Result<Vec<ItemDto>, String> {
+pub fn list_items(app: AppHandle, request: ListItemsRequest) -> Result<Vec<ItemDto>, String> {
     let region = parse_region(&request.region)?;
     service::list_items(&app, region, request.classify_type.as_deref()).map_err(map_error)
 }
@@ -153,6 +156,16 @@ pub fn toggle_operator_favorite(
 #[tauri::command]
 pub fn get_user_plan(app: AppHandle) -> Result<UserPlanDto, String> {
     service::get_user_plan(&app).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn export_user_data(app: AppHandle) -> Result<String, String> {
+    service::export_user_data(&app).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn import_user_data(app: AppHandle, request: ImportUserDataRequest) -> Result<(), String> {
+    service::import_user_data(&app, &request.content).map_err(map_error)
 }
 
 #[tauri::command]

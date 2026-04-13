@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 
-use super::{RawCost, deserialize_vec_or_empty_object};
+use super::{deserialize_vec_or_empty_object, RawCost};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -73,7 +73,9 @@ where
     deserialize_vec_or_empty_object(deserializer, "building formula costs")
 }
 
-fn deserialize_require_rooms<'de, D>(deserializer: D) -> Result<Vec<RawBuildingRequireRoom>, D::Error>
+fn deserialize_require_rooms<'de, D>(
+    deserializer: D,
+) -> Result<Vec<RawBuildingRequireRoom>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {

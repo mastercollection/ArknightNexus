@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import type { OperatorSummary, RegionSyncStatus } from '~/types/operator'
 import { RefreshRight, Search, Setting } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useRegionPreference } from '~/composables'
-import { translateProfession } from '~/i18n'
-import { getFeaturedOperators, getRegionSyncStatus, syncRegionData } from '~/services/operators'
+import {
+  exportUserDataFile,
+  getFeaturedOperators,
+  getRegionSyncStatus,
+  importUserDataFile,
+  syncRegionData,
+} from '~/services/operators'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -18,7 +23,9 @@ const syncStatus = ref<RegionSyncStatus | null>(null)
 const isLoading = ref(true)
 const errorMessage = ref('')
 const settingsOpen = ref(false)
+const userDataBusy = ref(false)
 const globeIcon = new URL('../assets/icons/globe.svg', import.meta.url).href
+const appIcon = new URL('../assets/icons/app/nexus-beacon.svg', import.meta.url).href
 
 const menuItems = computed(() => [
   {
@@ -128,6 +135,53 @@ function handleSettingsSync() {
 function notifySettingsPending() {
   ElMessage.info(t('home.messages.settingsPending'))
 }
+
+async function handleExportUserData() {
+  userDataBusy.value = true
+
+  try {
+    const exported = await exportUserDataFile()
+    if (exported)
+      ElMessage.success(t('home.messages.userDataExported'))
+  }
+  catch (error) {
+    ElMessage.error(String(error))
+  }
+  finally {
+    userDataBusy.value = false
+  }
+}
+
+async function handleImportUserData() {
+  try {
+    await ElMessageBox.confirm(
+      t('home.messages.userDataImportConfirm'),
+      t('home.settings.userDataImport'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning',
+      },
+    )
+  }
+  catch {
+    return
+  }
+
+  userDataBusy.value = true
+
+  try {
+    const imported = await importUserDataFile()
+    if (imported)
+      ElMessage.success(t('home.messages.userDataImported'))
+  }
+  catch (error) {
+    ElMessage.error(String(error))
+  }
+  finally {
+    userDataBusy.value = false
+  }
+}
 </script>
 
 <script lang="ts">
@@ -145,7 +199,7 @@ export default {
           class="inline-flex items-center gap-2.5 border-0 bg-transparent p-0 text-white"
           @click="router.push('/')"
         >
-          <span class="h-[0.85rem] w-[0.85rem] rounded-full bg-[linear-gradient(135deg,#75d2ff,#4d6bff)] shadow-glow" />
+          <img :src="appIcon" alt="" class="h-7 w-7 shrink-0 rounded-[8px]">
           <strong>Arknights Nexus</strong>
         </button>
       </template>
@@ -154,11 +208,7 @@ export default {
         <button type="button" class="top-bar-icon" @click="forceSync">
           <el-icon><RefreshRight /></el-icon>
         </button>
-        <el-select
-          :model-value="region"
-          class="w-24"
-          @update:model-value="handleRegionChange"
-        >
+        <el-select :model-value="region" class="w-24" @update:model-value="handleRegionChange">
           <el-option
             v-for="option in regionOptions"
             :key="option.value"
@@ -195,9 +245,11 @@ export default {
           :key="item.title"
           type="button"
           class="grid gap-4 card-tile p-4 text-left text-white transition-all duration-200"
-          :class="item.enabled
-            ? 'cursor-pointer border-[rgba(109,169,255,0.24)] hover:-translate-y-0.5 hover:border-[rgba(133,182,255,0.45)]'
-            : 'cursor-default opacity-60'"
+          :class="
+            item.enabled
+              ? 'cursor-pointer border-[rgba(109,169,255,0.24)] hover:-translate-y-0.5 hover:border-[rgba(133,182,255,0.45)]'
+              : 'cursor-default opacity-60'
+          "
           @click="item.enabled && item.action?.()"
         >
           <div class="flex items-start justify-between gap-2">
@@ -215,66 +267,9 @@ export default {
         </button>
       </div>
     </section>
-
-    <section class="grid gap-3.5">
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <p class="eyebrow">
-            Featured Operators
-          </p>
-          <h2 class="section-title">
-            추천 오퍼레이터
-          </h2>
-        </div>
-        <button type="button" class="action-btn" @click="router.push('/operators')">
-          전체 보기
-        </button>
-      </div>
-
-      <div v-if="errorMessage" class="grid gap-2.5 border border-soft rounded-[18px] bg-[rgba(255,255,255,0.03)] p-4">
-        <p class="m-0 text-[rgba(215,223,239,0.75)]">
-          {{ errorMessage }}
-        </p>
-        <button type="button" class="action-btn" @click="forceSync">
-          다시 동기화
-        </button>
-      </div>
-
-      <div v-else-if="isLoading" class="grid gap-2.5 border border-soft rounded-[18px] bg-[rgba(255,255,255,0.03)] p-4">
-        <p class="m-0 text-[rgba(215,223,239,0.75)]">
-          {{ t('home.states.loadingOperators') }}
-        </p>
-      </div>
-
-      <div v-else class="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
-        <button
-          v-for="operator in featuredOperators"
-          :key="operator.id"
-          type="button"
-          class="grid content-start gap-2.25 card-tile p-4 text-left text-white transition-all duration-200 hover:border-[rgba(133,182,255,0.45)] hover:-translate-y-0.5"
-          @click="router.push(`/operators/${operator.id}`)"
-        >
-          <div class="relative mx-auto w-fit">
-            <span class="operator-stars-overlay text-accent">{{ '★'.repeat(operator.rarity) }}</span>
-            <OperatorPortrait :char-id="operator.id" :name="operator.name" :hue="operator.thumbnailHue" size="md" />
-          </div>
-          <div class="grid gap-1">
-            <strong class="truncate text-[1.1rem] leading-none tracking-[-0.02em]">{{ operator.name }}</strong>
-            <p class="muted-copy">
-              {{ translateProfession(operator.profession) }}
-            </p>
-          </div>
-        </button>
-      </div>
-    </section>
   </section>
 
-  <el-drawer
-    v-model="settingsOpen"
-    direction="rtl"
-    size="min(88vw, 24rem)"
-    :with-header="false"
-  >
+  <el-drawer v-model="settingsOpen" direction="rtl" size="min(88vw, 24rem)" :with-header="false">
     <div class="grid gap-4 p-4">
       <div class="grid gap-1">
         <p class="eyebrow m-0">
@@ -286,8 +281,12 @@ export default {
       </div>
 
       <div class="grid gap-2">
-        <div class="flex items-center gap-2 border border-soft rounded-pill bg-[rgba(255,255,255,0.03)] px-2.5 py-2">
-          <span class="h-8 w-8 inline-flex flex-none items-center justify-center rounded-full bg-[rgba(109,169,255,0.12)] text-[rgba(214,229,255,0.86)]">
+        <div
+          class="flex items-center gap-2 border border-soft rounded-pill bg-[rgba(255,255,255,0.03)] px-2.5 py-2"
+        >
+          <span
+            class="h-8 w-8 inline-flex flex-none items-center justify-center rounded-full bg-[rgba(109,169,255,0.12)] text-[rgba(214,229,255,0.86)]"
+          >
             <img :src="globeIcon" alt="" class="h-[18px] w-[18px] opacity-92">
           </span>
           <el-select
@@ -314,6 +313,31 @@ export default {
         <button type="button" class="action-btn" @click="handleSettingsSync">
           {{ t('home.settings.syncAction') }}
         </button>
+      </div>
+
+      <div class="grid gap-2 rounded-card bg-[rgba(255,255,255,0.04)] p-4">
+        <strong>{{ t('home.settings.userDataTitle') }}</strong>
+        <p class="muted-copy">
+          {{ t('home.settings.userDataDescription') }}
+        </p>
+        <div class="grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            class="action-btn"
+            :disabled="userDataBusy"
+            @click="handleExportUserData"
+          >
+            {{ t('home.settings.userDataExport') }}
+          </button>
+          <button
+            type="button"
+            class="action-btn"
+            :disabled="userDataBusy"
+            @click="handleImportUserData"
+          >
+            {{ t('home.settings.userDataImport') }}
+          </button>
+        </div>
       </div>
 
       <button type="button" class="action-btn" @click="notifySettingsPending">

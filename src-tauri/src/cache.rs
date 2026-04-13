@@ -1,12 +1,12 @@
-use std::fs;
 use std::collections::HashMap;
+use std::fs;
 use std::path::PathBuf;
 
 use tauri::{AppHandle, Manager};
 
 use crate::cache_model::{
-    CachedItem, CachedManufactFormula, CachedOperator, CachedOperatorSummary, CachedWorkshopFormula, RegionSnapshot, RegionSummarySnapshot,
-    REGION_SNAPSHOT_SCHEMA_VERSION,
+    CachedItem, CachedManufactFormula, CachedOperator, CachedOperatorSummary,
+    CachedWorkshopFormula, RegionSnapshot, RegionSummarySnapshot, REGION_SNAPSHOT_SCHEMA_VERSION,
 };
 use crate::canonical::RegionSyncStatus;
 use crate::data_sources::RegionCode;
@@ -19,10 +19,11 @@ pub fn load_snapshot(app: &AppHandle, region: RegionCode) -> Result<RegionSnapsh
     }
 
     let content = fs::read_to_string(path)?;
-    let raw_value = serde_json::from_str::<serde_json::Value>(&content).map_err(|error| AppError::Serde {
-        context: "snapshot 캐시 읽기".to_string(),
-        message: error.to_string(),
-    })?;
+    let raw_value =
+        serde_json::from_str::<serde_json::Value>(&content).map_err(|error| AppError::Serde {
+            context: "snapshot 캐시 읽기".to_string(),
+            message: error.to_string(),
+        })?;
 
     let schema_version = raw_value
         .get("schemaVersion")
@@ -49,11 +50,12 @@ pub fn load_summary_snapshot(
     let path = summary_snapshot_path(app, region)?;
     if path.exists() {
         let content = fs::read_to_string(path)?;
-        let raw_value =
-            serde_json::from_str::<serde_json::Value>(&content).map_err(|error| AppError::Serde {
+        let raw_value = serde_json::from_str::<serde_json::Value>(&content).map_err(|error| {
+            AppError::Serde {
                 context: "summary snapshot 캐시 읽기".to_string(),
                 message: error.to_string(),
-            })?;
+            }
+        })?;
 
         let schema_version = raw_value
             .get("schemaVersion")
@@ -61,12 +63,13 @@ pub fn load_summary_snapshot(
             .unwrap_or_default() as u32;
 
         if schema_version == REGION_SNAPSHOT_SCHEMA_VERSION {
-            let snapshot = serde_json::from_value::<RegionSummarySnapshot>(raw_value).map_err(
-                |error| AppError::Serde {
-                    context: "summary snapshot 캐시 읽기".to_string(),
-                    message: error.to_string(),
-                },
-            )?;
+            let snapshot =
+                serde_json::from_value::<RegionSummarySnapshot>(raw_value).map_err(|error| {
+                    AppError::Serde {
+                        context: "summary snapshot 캐시 읽기".to_string(),
+                        message: error.to_string(),
+                    }
+                })?;
 
             return Ok(snapshot);
         }

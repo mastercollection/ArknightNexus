@@ -75,10 +75,12 @@ where
         Object(HashMap<String, serde::de::IgnoredAny>),
     }
 
-    Ok(match Option::<StageDropListValue>::deserialize(deserializer)? {
-        Some(StageDropListValue::List(items)) => items,
-        Some(StageDropListValue::Object(_)) | None => Vec::new(),
-    })
+    Ok(
+        match Option::<StageDropListValue>::deserialize(deserializer)? {
+            Some(StageDropListValue::List(items)) => items,
+            Some(StageDropListValue::Object(_)) | None => Vec::new(),
+        },
+    )
 }
 
 fn deserialize_building_product_list<'de, D>(

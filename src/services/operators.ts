@@ -15,7 +15,16 @@ import type {
 } from '~/types/operator'
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { appCacheDir, join } from '@tauri-apps/api/path'
-import { BaseDirectory, exists, mkdir, remove, rename } from '@tauri-apps/plugin-fs'
+import { open, save } from '@tauri-apps/plugin-dialog'
+import {
+  BaseDirectory,
+  exists,
+  mkdir,
+  readTextFile,
+  remove,
+  rename,
+  writeTextFile,
+} from '@tauri-apps/plugin-fs'
 import { error, warn } from '@tauri-apps/plugin-log'
 import { download } from '@tauri-apps/plugin-upload'
 import { operators as fallbackOperators } from '~/data/operators'
@@ -47,7 +56,8 @@ const regionReadyCache = new Set<RegionCode>()
 const regionTermsCache = new Map<RegionCode, RegionTerms>()
 const resolvedImageSourceCache = new Map<string, ResolvedImageSource>()
 const penguinMatrixCache = new Map<string, PenguinMatrixEntry[]>()
-const IMAGE_REMOTE_BASE_URL = 'https://raw.githubusercontent.com/fexli/ArknightsResource/refs/heads/main'
+const IMAGE_REMOTE_BASE_URL
+  = 'https://raw.githubusercontent.com/fexli/ArknightsResource/refs/heads/main'
 const PENGUIN_MATRIX_ENDPOINT = 'https://penguin-stats.io/PenguinStats/api/v2/result/matrix'
 
 export type CachedImageKind = 'portrait' | 'moduleEquip' | 'moduleType' | 'skillIcon' | 'itemIcon'
@@ -74,7 +84,11 @@ function canUseTauri() {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 }
 
-async function logImageCache(level: 'warn' | 'error', message: string, details?: Record<string, unknown>) {
+async function logImageCache(
+  level: 'warn' | 'error',
+  message: string,
+  details?: Record<string, unknown>,
+) {
   if (!canUseTauri())
     return
 
@@ -99,8 +113,14 @@ function getImageFileName(id: string) {
 
 function normalizeImageId(value: string) {
   const normalized = value.trim()
-  if (!normalized || normalized.includes('/') || normalized.includes('\\') || normalized.includes('..'))
+  if (
+    !normalized
+    || normalized.includes('/')
+    || normalized.includes('\\')
+    || normalized.includes('..')
+  ) {
     return undefined
+  }
 
   if (!/^[\w.\-[\]]+$/.test(normalized))
     return undefined
@@ -155,12 +175,13 @@ function buildImageDescriptor(kind: CachedImageKind, id: string): ImageDescripto
     parentRelativePath: 'images/modules/type',
     relativePath: `images/modules/type/${getImageFileName(normalizedId)}`,
     partRelativePath: `images/modules/type/${getImageFileName(normalizedId)}.part`,
-    candidateUrls: uppercaseId === normalizedId
-      ? [`${IMAGE_REMOTE_BASE_URL}/equipt/${normalizedId}.png`]
-      : [
-          `${IMAGE_REMOTE_BASE_URL}/equipt/${normalizedId}.png`,
-          `${IMAGE_REMOTE_BASE_URL}/equipt/${uppercaseId}.png`,
-        ],
+    candidateUrls:
+      uppercaseId === normalizedId
+        ? [`${IMAGE_REMOTE_BASE_URL}/equipt/${normalizedId}.png`]
+        : [
+            `${IMAGE_REMOTE_BASE_URL}/equipt/${normalizedId}.png`,
+            `${IMAGE_REMOTE_BASE_URL}/equipt/${uppercaseId}.png`,
+          ],
   }
 }
 
@@ -188,16 +209,17 @@ function listFallbackOperators(filters: OperatorFilters = {}): OperatorSummary[]
 
   return fallbackOperators
     .filter((operator) => {
-      const matchesQuery = normalizedQuery.length === 0
-        || [
-          operator.name,
-          operator.codename,
-          operator.profession,
-          operator.branch,
-          ...operator.teams,
-          ...operator.nations,
-          ...operator.groups,
-        ].some(value => value.toLowerCase().includes(normalizedQuery))
+      const matchesQuery
+        = normalizedQuery.length === 0
+          || [
+            operator.name,
+            operator.codename,
+            operator.profession,
+            operator.branch,
+            ...operator.teams,
+            ...operator.nations,
+            ...operator.groups,
+          ].some(value => value.toLowerCase().includes(normalizedQuery))
 
       const matchesRarity = !filters.rarity || operator.rarity === filters.rarity
       const matchesProfession = !filters.profession || operator.profession === filters.profession
@@ -263,13 +285,15 @@ export async function syncRegionData(region: RegionCode = DEFAULT_REGION): Promi
 
 export async function getRegionSyncStatus(): Promise<RegionSyncStatus[]> {
   if (!canUseTauri()) {
-    return [{
-      region: DEFAULT_REGION,
-      sourceRevision: 'fallback',
-      fetchedAt: new Date().toISOString(),
-      operatorCount: fallbackOperators.length,
-      isReady: true,
-    }]
+    return [
+      {
+        region: DEFAULT_REGION,
+        sourceRevision: 'fallback',
+        fetchedAt: new Date().toISOString(),
+        operatorCount: fallbackOperators.length,
+        isReady: true,
+      },
+    ]
   }
 
   return invoke<RegionSyncStatus[]>('get_region_sync_status')
@@ -337,6 +361,45 @@ export async function getUserPlan(): Promise<UserPlan> {
   return invoke<UserPlan>('get_user_plan')
 }
 
+export async function exportUserDataFile(): Promise<boolean> {
+  if (!canUseTauri())
+    return false
+
+  const content = await invoke<string>('export_user_data')
+  const destination = await save({
+    defaultPath: 'user_data.json',
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+  })
+
+  if (!destination)
+    return false
+
+  await writeTextFile(destination, content)
+  return true
+}
+
+export async function importUserDataFile(): Promise<boolean> {
+  if (!canUseTauri())
+    return false
+
+  const source = await open({
+    directory: false,
+    multiple: false,
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+  })
+
+  if (!source || Array.isArray(source))
+    return false
+
+  const content = await readTextFile(source)
+  await invoke('import_user_data', {
+    request: {
+      content,
+    },
+  })
+  return true
+}
+
 export async function saveUserPlanSelection(operatorIds: string[]): Promise<string[]> {
   if (!canUseTauri())
     return operatorIds
@@ -370,7 +433,9 @@ export async function removeUserPlanOperator(operatorId: string): Promise<boolea
   })
 }
 
-export async function resolveImageSource(request: ImageSourceRequest): Promise<ResolvedImageSource> {
+export async function resolveImageSource(
+  request: ImageSourceRequest,
+): Promise<ResolvedImageSource> {
   try {
     if (!canUseTauri())
       return { status: 'missing' }
@@ -394,7 +459,10 @@ export async function resolveImageSource(request: ImageSourceRequest): Promise<R
       status: 'ready' as const,
     }
 
-    if (!request.forceRefresh && await exists(descriptor.relativePath, { baseDir: BaseDirectory.AppCache })) {
+    if (
+      !request.forceRefresh
+      && (await exists(descriptor.relativePath, { baseDir: BaseDirectory.AppCache }))
+    ) {
       resolvedImageSourceCache.set(cacheKey, cachedResult)
       return cachedResult
     }
@@ -567,7 +635,7 @@ export async function getPenguinItemMatrix(
   if (!response.ok)
     throw new Error(`Penguin Stats request failed: ${response.status}`)
 
-  const payload = await response.json() as PenguinMatrixResponse | PenguinMatrixResponseEntry[]
+  const payload = (await response.json()) as PenguinMatrixResponse | PenguinMatrixResponseEntry[]
   const matrix = Array.isArray(payload)
     ? payload
     : Array.isArray(payload.matrix)
@@ -585,7 +653,12 @@ export async function getPenguinItemMatrix(
       end: entry.end ?? null,
       dropRate: entry.quantity / entry.times,
     }))
-    .sort((left, right) => right.dropRate - left.dropRate || right.times - left.times || left.stageId.localeCompare(right.stageId))
+    .sort(
+      (left, right) =>
+        right.dropRate - left.dropRate
+        || right.times - left.times
+        || left.stageId.localeCompare(right.stageId),
+    )
 
   penguinMatrixCache.set(cacheKey, result)
   return result
@@ -609,7 +682,11 @@ export async function getOperatorById(
   }).then(result => result ?? undefined)
 }
 
-export function getOperatorStats(detail: OperatorDetail, elite: number, level: number): OperatorStatPoint {
+export function getOperatorStats(
+  detail: OperatorDetail,
+  elite: number,
+  level: number,
+): OperatorStatPoint {
   const safeElite = clamp(elite, 0, detail.stats.length - 1)
   const progression = detail.stats[safeElite] ?? detail.stats[0]
   const maxLevel = detail.eliteCaps[safeElite] ?? detail.eliteCaps[0] ?? 1
@@ -627,15 +704,29 @@ export function getOperatorStats(detail: OperatorDetail, elite: number, level: n
     redeployTime: interpolate(progression.min.redeployTime, progression.max.redeployTime, progress),
     dpCost: interpolate(progression.min.dpCost, progression.max.dpCost, progress),
     block: interpolate(progression.min.block, progression.max.block, progress),
-    attackInterval: Number((progression.min.attackInterval + (progression.max.attackInterval - progression.min.attackInterval) * progress).toFixed(1)),
-    hpRecoveryPerSec: Number((progression.min.hpRecoveryPerSec + (progression.max.hpRecoveryPerSec - progression.min.hpRecoveryPerSec) * progress).toFixed(1)),
+    attackInterval: Number(
+      (
+        progression.min.attackInterval
+        + (progression.max.attackInterval - progression.min.attackInterval) * progress
+      ).toFixed(1),
+    ),
+    hpRecoveryPerSec: Number(
+      (
+        progression.min.hpRecoveryPerSec
+        + (progression.max.hpRecoveryPerSec - progression.min.hpRecoveryPerSec) * progress
+      ).toFixed(1),
+    ),
   }
 }
 
 export function getOperatorFilterOptions() {
   return {
-    rarities: Array.from(new Set(fallbackOperators.map(operator => operator.rarity))).sort((a, b) => b - a),
-    professions: Array.from(new Set(fallbackOperators.map(operator => operator.profession))).sort(),
+    rarities: Array.from(new Set(fallbackOperators.map(operator => operator.rarity))).sort(
+      (a, b) => b - a,
+    ),
+    professions: Array.from(
+      new Set(fallbackOperators.map(operator => operator.profession)),
+    ).sort(),
   }
 }
 

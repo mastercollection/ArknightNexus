@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
@@ -6,9 +7,12 @@ use tauri::{AppHandle, Manager};
 
 use crate::errors::AppError;
 
-use crate::canonical::{UserPlanDto, UserPlanModuleDto, UserPlanOperatorDto, UserPlanOperatorStateDto};
+use crate::canonical::{
+    UserPlanDto, UserPlanModuleDto, UserPlanOperatorDto, UserPlanOperatorStateDto,
+};
 
 pub const USER_DATA_SCHEMA_VERSION: u32 = 2;
+const MAX_USER_DATA_IMPORT_BYTES: usize = 1024 * 1024;
 
 const MAX_ELITE: u8 = 2;
 const MAX_SKILL_LEVEL: u8 = 10;
@@ -31,12 +35,7 @@ pub struct UserData {
 pub fn load_user_data(app: &AppHandle) -> Result<UserData, AppError> {
     let path = user_data_path(app)?;
     if !path.exists() {
-        return Ok(UserData {
-            schema_version: USER_DATA_SCHEMA_VERSION,
-            favorites: Vec::new(),
-            selected_operator_ids: Vec::new(),
-            operator_plans: Vec::new(),
-        });
+        return Ok(default_user_data());
     }
 
     let content = fs::read_to_string(path)?;
@@ -60,6 +59,30 @@ pub fn save_user_data(app: &AppHandle, data: &UserData) -> Result<(), AppError> 
     fs::write(&temp_path, bytes)?;
     fs::rename(temp_path, path)?;
     Ok(())
+}
+
+pub fn export_user_data_json(app: &AppHandle) -> Result<String, AppError> {
+    let data = normalize_user_data(load_user_data(app)?)?;
+    serde_json::to_string_pretty(&data).map_err(|error| AppError::Serde {
+        context: "user data 내보내기".to_string(),
+        message: error.to_string(),
+    })
+}
+
+pub fn import_user_data_json(app: &AppHandle, content: &str) -> Result<(), AppError> {
+    let trimmed = content.trim();
+    if trimmed.is_empty() || trimmed.len() > MAX_USER_DATA_IMPORT_BYTES {
+        return Err(AppError::InvalidInput("content".to_string()));
+    }
+
+    let parsed = serde_json::from_str::<UserData>(trimmed).map_err(|error| AppError::Serde {
+        context: "user data 가져오기".to_string(),
+        message: error.to_string(),
+    })?;
+    let normalized = normalize_user_data(parsed)?;
+
+    backup_user_data(app)?;
+    save_user_data(app, &normalized)
 }
 
 pub fn load_favorites(app: &AppHandle) -> Result<Vec<String>, AppError> {
@@ -105,12 +128,18 @@ pub fn load_plan(app: &AppHandle) -> Result<UserPlanDto, AppError> {
     })
 }
 
-pub fn save_plan_selection(app: &AppHandle, operator_ids: &[String]) -> Result<Vec<String>, AppError> {
+pub fn save_plan_selection(
+    app: &AppHandle,
+    operator_ids: &[String],
+) -> Result<Vec<String>, AppError> {
     let mut data = load_user_data(app)?;
     data.schema_version = USER_DATA_SCHEMA_VERSION;
     data.selected_operator_ids = sanitize_ids(operator_ids.to_vec());
-    data.operator_plans
-        .retain(|plan| data.selected_operator_ids.iter().any(|id| id == &plan.operator_id));
+    data.operator_plans.retain(|plan| {
+        data.selected_operator_ids
+            .iter()
+            .any(|id| id == &plan.operator_id)
+    });
     save_user_data(app, &data)?;
     Ok(data.selected_operator_ids)
 }
@@ -138,7 +167,8 @@ pub fn save_plan_operator(
         .iter()
         .any(|operator_id| operator_id == &validated.operator_id)
     {
-        data.selected_operator_ids.push(validated.operator_id.clone());
+        data.selected_operator_ids
+            .push(validated.operator_id.clone());
     }
 
     data.selected_operator_ids = sanitize_ids(data.selected_operator_ids);
@@ -165,12 +195,51 @@ pub fn remove_plan_operator(app: &AppHandle, operator_id: &str) -> Result<bool, 
     data.operator_plans
         .retain(|value| value.operator_id != operator_id);
 
-    let changed = selected_len != data.selected_operator_ids.len() || plan_len != data.operator_plans.len();
+    let changed =
+        selected_len != data.selected_operator_ids.len() || plan_len != data.operator_plans.len();
     if changed {
         save_user_data(app, &data)?;
     }
 
     Ok(changed)
+}
+
+fn default_user_data() -> UserData {
+    UserData {
+        schema_version: USER_DATA_SCHEMA_VERSION,
+        favorites: Vec::new(),
+        selected_operator_ids: Vec::new(),
+        operator_plans: Vec::new(),
+    }
+}
+
+fn normalize_user_data(data: UserData) -> Result<UserData, AppError> {
+    let favorites = sanitize_ids(data.favorites);
+    let selected_operator_ids = sanitize_ids(data.selected_operator_ids);
+    let mut operator_plans = BTreeMap::new();
+
+    for plan in data.operator_plans {
+        let validated = validate_plan(plan)?;
+        operator_plans.insert(validated.operator_id.clone(), validated);
+    }
+
+    Ok(UserData {
+        schema_version: USER_DATA_SCHEMA_VERSION,
+        favorites,
+        selected_operator_ids,
+        operator_plans: operator_plans.into_values().collect(),
+    })
+}
+
+fn backup_user_data(app: &AppHandle) -> Result<(), AppError> {
+    let path = user_data_path(app)?;
+    if !path.exists() {
+        return Ok(());
+    }
+
+    let backup_path = path.with_extension("json.bak");
+    fs::copy(path, backup_path)?;
+    Ok(())
 }
 
 fn sanitize_ids(values: Vec<String>) -> Vec<String> {

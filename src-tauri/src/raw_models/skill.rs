@@ -58,7 +58,9 @@ where
 
     match value {
         None | Some(serde_json::Value::Null) => Ok(None),
-        Some(other) => super::parse_vec_or_empty_object::<RawBlackboard, D::Error>(other, "blackboard")
-            .map(Some),
+        Some(other) => {
+            super::parse_vec_or_empty_object::<RawBlackboard, D::Error>(other, "blackboard")
+                .map(Some)
+        }
     }
 }

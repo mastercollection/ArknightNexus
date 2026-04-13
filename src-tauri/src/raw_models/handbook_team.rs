@@ -21,16 +21,14 @@ pub fn into_power_names(table: RawHandbookTeamTable) -> HashMap<String, String> 
         .filter_map(|(key, value)| {
             let id = if value.power_id.trim().is_empty() {
                 key
-            }
-            else {
+            } else {
                 value.power_id
             };
             let name = value.power_name.trim().to_string();
 
             if id.trim().is_empty() || name.is_empty() {
                 None
-            }
-            else {
+            } else {
                 Some((id, name))
             }
         })

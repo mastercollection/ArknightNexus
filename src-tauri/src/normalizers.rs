@@ -1,19 +1,23 @@
 use std::collections::HashMap;
 
 use crate::cache_model::{
-    CachedBlackboardEntry, CachedBuildingCost, CachedBuildingRequireRoom, CachedItem, CachedItemBuildingProduct, CachedItemStageDrop, CachedManufactFormula, CachedOperator, CachedOperatorPotential, CachedOperatorSkill,
-    CachedOperatorModule, CachedModuleBattlePart, CachedModuleBattlePhase, CachedModuleCost,
-    CachedModuleTalentCandidate, CachedModuleTraitCandidate, CachedOperatorRange,
-    CachedOperatorRangeGrid, CachedOperatorSkillLevel, CachedOperatorStatPoint,
-    CachedOperatorStatProgression, CachedOperatorTalent, CachedOperatorTrait, CachedWorkshopExtraOutcome, CachedWorkshopFormula, CachedOperatorUpgradeCost, CachedOperatorUpgradeCostStage,
+    CachedBlackboardEntry, CachedBuildingCost, CachedBuildingRequireRoom, CachedItem,
+    CachedItemBuildingProduct, CachedItemStageDrop, CachedManufactFormula, CachedModuleBattlePart,
+    CachedModuleBattlePhase, CachedModuleCost, CachedModuleTalentCandidate,
+    CachedModuleTraitCandidate, CachedOperator, CachedOperatorModule, CachedOperatorPotential,
+    CachedOperatorRange, CachedOperatorRangeGrid, CachedOperatorSkill, CachedOperatorSkillLevel,
+    CachedOperatorStatPoint, CachedOperatorStatProgression, CachedOperatorTalent,
+    CachedOperatorTrait, CachedOperatorUpgradeCost, CachedOperatorUpgradeCostStage,
+    CachedWorkshopExtraOutcome, CachedWorkshopFormula,
 };
 use crate::data_sources::RegionCode;
 use crate::raw_models::{
-    RawBattleEquipEntry, RawBattleEquipPart, RawBattleEquipTable, RawBattleEquipTalentCandidate,
-    RawBattleEquipTraitCandidate, RawBlackboard, RawBuildingData, RawCharacterEntry, RawCharacterTable,
-    RawEquipEntry, RawFavorTable, RawGameDataConst, RawItemEntry, RawKeyFrame, RawLevelValue, RawNumberValue,
-    RawPhaseValue, RawPotentialRank, RawRangeEntry, RawRangeTable, RawRarityValue, RawSkillEntry,
-    RawSkillLevel, RawSkillReference, RawSkillTable, RawTalentCandidate, RawTraitCandidate, RawCost, RawAllSkillLvlup, RawLevelUpCostCond,
+    RawAllSkillLvlup, RawBattleEquipEntry, RawBattleEquipPart, RawBattleEquipTable,
+    RawBattleEquipTalentCandidate, RawBattleEquipTraitCandidate, RawBlackboard, RawBuildingData,
+    RawCharacterEntry, RawCharacterTable, RawCost, RawEquipEntry, RawFavorTable, RawGameDataConst,
+    RawItemEntry, RawKeyFrame, RawLevelUpCostCond, RawLevelValue, RawNumberValue, RawPhaseValue,
+    RawPotentialRank, RawRangeEntry, RawRangeTable, RawRarityValue, RawSkillEntry, RawSkillLevel,
+    RawSkillReference, RawSkillTable, RawTalentCandidate, RawTraitCandidate,
 };
 
 pub fn normalize_operators(
@@ -285,7 +289,13 @@ fn normalize_operator(
                 level: index as u32 + 1,
                 min: normalize_keyframe(min),
                 max: normalize_keyframe(max),
-                range: normalize_range(character.phases.get(index).and_then(|phase| phase.range_id.as_deref()), range_table),
+                range: normalize_range(
+                    character
+                        .phases
+                        .get(index)
+                        .and_then(|phase| phase.range_id.as_deref()),
+                    range_table,
+                ),
             })
         })
         .collect::<Vec<_>>();
@@ -309,11 +319,15 @@ fn normalize_operator(
         .into_iter()
         .flat_map(|talents| talents.iter().enumerate())
         .flat_map(|(group_index, talent)| {
-            talent.candidates.as_ref().into_iter().flat_map(move |items| {
-                items.iter().filter_map(move |candidate| {
-                    normalize_talent_candidate(group_index, candidate)
+            talent
+                .candidates
+                .as_ref()
+                .into_iter()
+                .flat_map(move |items| {
+                    items.iter().filter_map(move |candidate| {
+                        normalize_talent_candidate(group_index, candidate)
+                    })
                 })
-            })
         })
         .collect::<Vec<_>>();
 
@@ -327,7 +341,9 @@ fn normalize_operator(
     let normalized_skills = character
         .skills
         .iter()
-        .filter_map(|skill_ref| normalize_skill_reference(skill_ref, skills, range_table, items_by_id))
+        .filter_map(|skill_ref| {
+            normalize_skill_reference(skill_ref, skills, range_table, items_by_id)
+        })
         .collect::<Vec<_>>();
 
     let modules = modules_by_char
@@ -336,7 +352,13 @@ fn normalize_operator(
             items
                 .iter()
                 .map(|item| {
-                    normalize_module(item, battle_equip_table, favor_table, range_table, items_by_id)
+                    normalize_module(
+                        item,
+                        battle_equip_table,
+                        favor_table,
+                        range_table,
+                        items_by_id,
+                    )
                 })
                 .collect()
         })
@@ -421,7 +443,8 @@ fn normalize_module(
         unlock_favors: module.unlock_favors.clone(),
         unlock_favor_percents: normalize_module_favor_percents(module, favor_table),
         item_cost: module.item_cost.as_ref().map(|items| {
-            items.iter()
+            items
+                .iter()
                 .map(|(key, value)| {
                     (
                         key.clone(),
@@ -429,9 +452,15 @@ fn normalize_module(
                             .iter()
                             .map(|cost| CachedModuleCost {
                                 item_name: items_by_id.get(&cost.id).map(|item| item.name.clone()),
-                                item_rarity: items_by_id.get(&cost.id).map(|item| item.rarity.as_string()),
-                                item_icon_id: items_by_id.get(&cost.id).map(|item| item.icon_id.clone()),
-                                item_type: items_by_id.get(&cost.id).map(|item| item.item_type.as_string()),
+                                item_rarity: items_by_id
+                                    .get(&cost.id)
+                                    .map(|item| item.rarity.as_string()),
+                                item_icon_id: items_by_id
+                                    .get(&cost.id)
+                                    .map(|item| item.icon_id.clone()),
+                                item_type: items_by_id
+                                    .get(&cost.id)
+                                    .map(|item| item.item_type.as_string()),
                                 id: cost.id.clone(),
                                 count: cost.count.as_f64(),
                                 cost_type: cost.cost_type.clone(),
@@ -574,7 +603,10 @@ fn normalize_module_talent_candidate(
     }
 
     Some(CachedModuleTalentCandidate {
-        name: candidate.name.clone().filter(|value| !value.trim().is_empty()),
+        name: candidate
+            .name
+            .clone()
+            .filter(|value| !value.trim().is_empty()),
         description: description.to_string(),
         elite: parse_phase_value(&candidate.unlock_condition.phase),
         level: parse_level_value(&candidate.unlock_condition.level),
@@ -652,7 +684,10 @@ fn normalize_skill_reference(
 
     Some(CachedOperatorSkill {
         id: skill_id,
-        icon_id: skill.icon_id.clone().filter(|value| !value.trim().is_empty()),
+        icon_id: skill
+            .icon_id
+            .clone()
+            .filter(|value| !value.trim().is_empty()),
         name: first_level.name.clone(),
         recovery_type: map_sp_recovery(first_level.sp_data.as_ref().map(|value| &value.sp_type)),
         activation_type: map_activation_type(first_level.skill_type.as_deref()),
@@ -681,9 +716,13 @@ fn normalize_upgrade_costs(
             count: cost.count.as_f64(),
             cost_type: cost.cost_type.clone(),
             item_name: items_by_id.get(&cost.id).map(|item| item.name.clone()),
-            item_rarity: items_by_id.get(&cost.id).map(|item| item.rarity.as_string()),
+            item_rarity: items_by_id
+                .get(&cost.id)
+                .map(|item| item.rarity.as_string()),
             item_icon_id: items_by_id.get(&cost.id).map(|item| item.icon_id.clone()),
-            item_type: items_by_id.get(&cost.id).map(|item| item.item_type.as_string()),
+            item_type: items_by_id
+                .get(&cost.id)
+                .map(|item| item.item_type.as_string()),
         })
         .collect()
 }
@@ -737,13 +776,21 @@ fn normalize_skill_level(
         blackboard: skill_level
             .blackboard
             .as_ref()
-            .map(|items| items.iter().filter_map(normalize_blackboard_entry).collect())
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(normalize_blackboard_entry)
+                    .collect()
+            })
             .unwrap_or_default(),
         range: normalize_range(skill_level.range_id.as_deref(), range_table),
     }
 }
 
-fn normalize_range(range_id: Option<&str>, range_table: &RawRangeTable) -> Option<CachedOperatorRange> {
+fn normalize_range(
+    range_id: Option<&str>,
+    range_table: &RawRangeTable,
+) -> Option<CachedOperatorRange> {
     let range_id = range_id?.trim();
     if range_id.is_empty() {
         return None;
@@ -789,7 +836,8 @@ fn normalize_trait_candidate(
         description: description.to_string(),
         elite: parse_phase_value(&candidate.unlock_condition.phase),
         level: parse_level_value(&candidate.unlock_condition.level),
-        required_potential_rank: round_number_to_i64(&candidate.required_potential_rank).max(0) as u8,
+        required_potential_rank: round_number_to_i64(&candidate.required_potential_rank).max(0)
+            as u8,
         blackboard: candidate
             .blackboard
             .iter()
@@ -824,7 +872,8 @@ fn normalize_talent_candidate(
         description,
         elite: parse_phase_value(&candidate.unlock_condition.phase),
         level: parse_level_value(&candidate.unlock_condition.level),
-        required_potential_rank: round_number_to_i64(&candidate.required_potential_rank).max(0) as u8,
+        required_potential_rank: round_number_to_i64(&candidate.required_potential_rank).max(0)
+            as u8,
         blackboard: candidate
             .blackboard
             .iter()
@@ -899,14 +948,16 @@ fn humanize_profession(value: &str) -> String {
     }
 }
 
-
 fn humanize_slug(value: &str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
         return "Unknown".to_string();
     }
 
-    if trimmed.chars().all(|ch| !ch.is_ascii_alphabetic() || ch.is_ascii_uppercase()) {
+    if trimmed
+        .chars()
+        .all(|ch| !ch.is_ascii_alphabetic() || ch.is_ascii_uppercase())
+    {
         return trimmed
             .replace(['_', '-', '/'], " ")
             .split_whitespace()

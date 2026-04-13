@@ -14,6 +14,7 @@ mod user_store;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(
             tauri_plugin_log::Builder::new()
@@ -46,6 +47,8 @@ pub fn run() {
             commands::get_user_favorites,
             commands::toggle_operator_favorite,
             commands::get_user_plan,
+            commands::export_user_data,
+            commands::import_user_data,
             commands::save_user_plan_selection,
             commands::save_user_plan_operator,
             commands::remove_user_plan_operator

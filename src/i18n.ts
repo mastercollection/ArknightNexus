@@ -13,6 +13,10 @@ type ProfessionKey
 
 const messages = {
   kr: {
+    common: {
+      confirm: '확인',
+      cancel: '취소',
+    },
     profession: {
       vanguard: '뱅가드',
       sniper: '스나이퍼',
@@ -182,10 +186,18 @@ const messages = {
         syncReady: '준비됨',
         syncNeeded: '동기화 필요',
         syncAction: '동기화 실행',
+        userDataTitle: 'UserData 관리',
+        userDataDescription: '즐겨찾기와 육성 계획이 담긴 user_data.json을 내보내거나 가져옵니다.',
+        userDataExport: 'UserData 내보내기',
+        userDataImport: 'UserData 가져오기',
         morePending: '추가 설정은 준비 중',
       },
       messages: {
         settingsPending: '세부 설정 화면은 준비 중입니다.',
+        userDataExported: 'UserData를 내보냈습니다.',
+        userDataImported: 'UserData를 가져왔습니다.',
+        userDataImportConfirm:
+          '현재 UserData를 백업한 뒤 가져온 파일로 덮어씁니다. 계속하시겠습니까?',
       },
     },
     itemsPage: {
@@ -332,6 +344,10 @@ const messages = {
     },
   },
   cn: {
+    common: {
+      confirm: '确认',
+      cancel: '取消',
+    },
     profession: {
       vanguard: '先锋',
       sniper: '狙击',
@@ -505,10 +521,17 @@ const messages = {
         syncReady: '已就绪',
         syncNeeded: '需要同步',
         syncAction: '执行同步',
+        userDataTitle: 'UserData 管理',
+        userDataDescription: '导出或导入包含收藏与养成计划的 user_data.json。',
+        userDataExport: '导出 UserData',
+        userDataImport: '导入 UserData',
         morePending: '更多设置准备中',
       },
       messages: {
         settingsPending: '详细设置界面仍在准备中。',
+        userDataExported: '已导出 UserData。',
+        userDataImported: '已导入 UserData。',
+        userDataImportConfirm: '将先备份当前 UserData，再用所选文件覆盖。要继续吗？',
       },
     },
     itemsPage: {
@@ -595,6 +618,10 @@ const messages = {
     },
   },
   jp: {
+    common: {
+      confirm: '確認',
+      cancel: 'キャンセル',
+    },
     profession: {
       vanguard: '先鋒',
       sniper: '狙撃',
@@ -757,7 +784,8 @@ const messages = {
       },
       statusPanel: {
         title: 'オペレーター図鑑を優先実装',
-        description: 'トップ画面は探索中心に簡素化しており、現在実際に入れるセクションは Operators のみです。',
+        description:
+          'トップ画面は探索中心に簡素化しており、現在実際に入れるセクションは Operators のみです。',
       },
       states: {
         loadingOperators: 'オペレーターデータを読み込み中です。',
@@ -768,10 +796,19 @@ const messages = {
         syncReady: '準備完了',
         syncNeeded: '同期が必要',
         syncAction: '同期を実行',
+        userDataTitle: 'UserData 管理',
+        userDataDescription:
+          'お気に入りと育成計画を含む user_data.json をエクスポートまたはインポートします。',
+        userDataExport: 'UserData をエクスポート',
+        userDataImport: 'UserData をインポート',
         morePending: '追加設定は準備中',
       },
       messages: {
         settingsPending: '詳細設定画面は準備中です。',
+        userDataExported: 'UserData をエクスポートしました。',
+        userDataImported: 'UserData をインポートしました。',
+        userDataImportConfirm:
+          '現在の UserData をバックアップした後、選択したファイルで上書きします。続行しますか？',
       },
     },
     itemsPage: {
@@ -858,6 +895,10 @@ const messages = {
     },
   },
   tw: {
+    common: {
+      confirm: '確認',
+      cancel: '取消',
+    },
     profession: {
       vanguard: '先鋒',
       sniper: '狙擊',
@@ -1031,10 +1072,17 @@ const messages = {
         syncReady: '已就緒',
         syncNeeded: '需要同步',
         syncAction: '執行同步',
+        userDataTitle: 'UserData 管理',
+        userDataDescription: '匯出或匯入包含收藏與養成計畫的 user_data.json。',
+        userDataExport: '匯出 UserData',
+        userDataImport: '匯入 UserData',
         morePending: '更多設定準備中',
       },
       messages: {
         settingsPending: '詳細設定畫面仍在準備中。',
+        userDataExported: '已匯出 UserData。',
+        userDataImported: '已匯入 UserData。',
+        userDataImportConfirm: '將先備份目前的 UserData，再以所選檔案覆蓋。要繼續嗎？',
       },
     },
     itemsPage: {
@@ -1121,6 +1169,10 @@ const messages = {
     },
   },
   en: {
+    common: {
+      confirm: 'Confirm',
+      cancel: 'Cancel',
+    },
     profession: {
       vanguard: 'Vanguard',
       sniper: 'Sniper',
@@ -1201,11 +1253,13 @@ const messages = {
         potentialStage: 'Potential Rank {rank}',
       },
       descriptions: {
-        attackRange: 'Shows the base attack range for the current elite phase using 0,0 as the origin.',
+        attackRange:
+          'Shows the base attack range for the current elite phase using 0,0 as the origin.',
         trait: 'Review class trait behavior and phase changes.',
         talent: 'Talent effects unlocked by elite and potential conditions.',
         modules: 'Shows stage-based module effects and unlock conditions.',
-        skillDisplayLevel: 'The top description and highlighted table column follow the selected level.',
+        skillDisplayLevel:
+          'The top description and highlighted table column follow the selected level.',
         skillLevelComparison: 'Compare only the values that change across skill levels.',
       },
       states: {
@@ -1214,7 +1268,8 @@ const messages = {
         loadingDescription: 'Checking regional cache and detailed data.',
         errorTitle: 'Failed to load operator details.',
         notFoundTitle: 'Operator not found.',
-        notFoundDescription: 'The route is invalid, or this character is not included in the current dataset yet.',
+        notFoundDescription:
+          'The route is invalid, or this character is not included in the current dataset yet.',
         backToList: 'Back to list',
         noModules: 'No module information is available.',
         noModuleDetails: 'No additional effects are available for the selected stage.',
@@ -1280,7 +1335,8 @@ const messages = {
       },
       statusPanel: {
         title: 'Operator index comes first',
-        description: 'The first screen is simplified around navigation, and Operators is the only fully available section right now.',
+        description:
+          'The first screen is simplified around navigation, and Operators is the only fully available section right now.',
       },
       states: {
         loadingOperators: 'Loading operator data.',
@@ -1291,10 +1347,19 @@ const messages = {
         syncReady: 'Ready',
         syncNeeded: 'Need Sync',
         syncAction: 'Run Sync',
+        userDataTitle: 'UserData',
+        userDataDescription:
+          'Export or import the user_data.json file that stores favorites and plan data.',
+        userDataExport: 'Export UserData',
+        userDataImport: 'Import UserData',
         morePending: 'More settings are coming soon',
       },
       messages: {
         settingsPending: 'Detailed settings are still in progress.',
+        userDataExported: 'UserData exported.',
+        userDataImported: 'UserData imported.',
+        userDataImportConfirm:
+          'The current UserData will be backed up and replaced with the selected file. Continue?',
       },
     },
     itemsPage: {
