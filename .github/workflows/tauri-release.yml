@@ -74,7 +74,6 @@ jobs:
           releaseName: Arknights Nexus ${{ github.ref_name }}
           releaseDraft: false
           prerelease: false
-          uploadUpdaterSignatures: false
 
   build-android:
     needs: create-release
@@ -122,16 +121,24 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build and upload Android artifacts
-        uses: tauri-apps/tauri-action@v0.6.0
+      - name: Build Android artifacts
+        run: pnpm tauri android build --apk --aab
+
+      - name: Upload Android artifacts to release
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          tauriScript: pnpm tauri
-          mobile: android
-          args: --apk --aab
-          tagName: ${{ github.ref_name }}
-          releaseName: Arknights Nexus ${{ github.ref_name }}
-          releaseDraft: false
-          prerelease: false
-          uploadUpdaterSignatures: false
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mapfile -t artifacts < <(find src-tauri/gen/android/app/build/outputs \
+            \( -name '*.apk' -o -name '*.aab' \) \
+            -type f)
+
+          if [ "${#artifacts[@]}" -eq 0 ]; then
+            echo "No Android artifacts were produced."
+            exit 1
+          fi
+
+          gh release upload "${GITHUB_REF_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --clobber \
+            "${artifacts[@]}"
