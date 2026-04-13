@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ItemEntry, OperatorDetail, OperatorSummary, UserPlan } from '~/types/operator'
-import { ArrowLeft, Plus, Search } from '@element-plus/icons-vue'
+import { ArrowLeft, Check, Close, Delete, Plus, Search } from '@element-plus/icons-vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -30,6 +30,8 @@ const summaryErrorMessage = ref('')
 const pickerOpen = ref(false)
 const pickerQuery = ref('')
 const activeTab = ref<'operators' | 'summary'>('operators')
+const selectionMode = ref(false)
+const pendingRemovalIds = ref<string[]>([])
 const operators = ref<OperatorSummary[]>([])
 const favoriteOperatorIds = ref<string[]>([])
 const selectedOperatorIds = ref<string[]>([])
@@ -41,6 +43,10 @@ const itemsById = ref<Record<string, ItemEntry>>({})
 const summaryDetails = ref<OperatorDetail[]>([])
 const numberFormatter = new Intl.NumberFormat('ko-KR')
 const expItemId = '5001'
+const tabOptions = computed(() => [
+  { label: t('planPage.tabs.operators'), value: 'operators' },
+  { label: t('planPage.tabs.summary'), value: 'summary' },
+])
 
 const selectedOperators = computed(() =>
   selectedOperatorIds.value
@@ -171,7 +177,37 @@ async function removeOperator(operatorId: string) {
   summaryDetails.value = summaryDetails.value.filter(operator => operator.id !== operatorId)
 }
 
+async function removeSelectedOperators() {
+  if (!pendingRemovalIds.value.length)
+    return
+
+  for (const operatorId of [...pendingRemovalIds.value])
+    await removeOperator(operatorId)
+
+  selectionMode.value = false
+  pendingRemovalIds.value = []
+}
+
+function toggleSelectionMode() {
+  selectionMode.value = !selectionMode.value
+  pendingRemovalIds.value = []
+}
+
+function togglePendingRemoval(operatorId: string) {
+  if (!selectionMode.value)
+    return
+
+  pendingRemovalIds.value = pendingRemovalIds.value.includes(operatorId)
+    ? pendingRemovalIds.value.filter(id => id !== operatorId)
+    : [...pendingRemovalIds.value, operatorId]
+}
+
 function openOperatorPlan(operatorId: string) {
+  if (selectionMode.value) {
+    togglePendingRemoval(operatorId)
+    return
+  }
+
   router.push(`/plan/${operatorId}`)
 }
 
@@ -187,6 +223,13 @@ watch([activeTab, selectedOperatorIds, region], ([tab]) => {
   if (tab === 'summary')
     void loadSummaryEntries()
 }, { deep: true })
+
+watch(activeTab, (tab) => {
+  if (tab !== 'operators') {
+    selectionMode.value = false
+    pendingRemovalIds.value = []
+  }
+})
 </script>
 
 <script lang="ts">
@@ -208,29 +251,36 @@ export default {
       </template>
 
       <template #right>
-        <button type="button" class="top-bar-icon" @click="pickerOpen = true">
-          <el-icon><Plus /></el-icon>
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            v-if="activeTab === 'operators' && selectedOperators.length"
+            type="button"
+            class="top-bar-icon"
+            @click="selectionMode ? removeSelectedOperators() : toggleSelectionMode()"
+          >
+            <el-icon><component :is="selectionMode ? Check : Delete" /></el-icon>
+          </button>
+          <button
+            v-if="selectionMode"
+            type="button"
+            class="top-bar-icon"
+            @click="toggleSelectionMode"
+          >
+            <el-icon><Close /></el-icon>
+          </button>
+          <button v-if="!selectionMode" type="button" class="top-bar-icon" @click="pickerOpen = true">
+            <el-icon><Plus /></el-icon>
+          </button>
+        </div>
       </template>
     </TopBar>
 
-    <section class="flex gap-2 rounded-panel panel-soft p-2">
-      <button
-        type="button"
-        class="flex-1 rounded-pill px-4 py-2.5 text-[0.88rem] font-700 transition-colors"
-        :class="activeTab === 'operators' ? 'bg-[rgba(112,176,255,0.18)] text-white' : 'bg-transparent text-[rgba(191,201,220,0.72)]'"
-        @click="activeTab = 'operators'"
-      >
-        {{ t('planPage.tabs.operators') }}
-      </button>
-      <button
-        type="button"
-        class="flex-1 rounded-pill px-4 py-2.5 text-[0.88rem] font-700 transition-colors"
-        :class="activeTab === 'summary' ? 'bg-[rgba(112,176,255,0.18)] text-white' : 'bg-transparent text-[rgba(191,201,220,0.72)]'"
-        @click="activeTab = 'summary'"
-      >
-        {{ t('planPage.tabs.summary') }}
-      </button>
+    <section>
+      <el-segmented
+        v-model="activeTab"
+        :options="tabOptions"
+        block
+      />
     </section>
 
     <section v-if="errorMessage" class="grid gap-2.5 rounded-panel panel-soft p-4">
@@ -270,62 +320,56 @@ export default {
                 {{ selectedOperators.length ? t('planPage.sections.selected') : t('planPage.sections.favorites') }}
               </h2>
               <p class="m-0 text-[0.84rem] text-[rgba(191,201,220,0.72)]">
-                {{ selectedOperators.length ? t('planPage.states.selectedDescription') : t('planPage.states.favoritesDescription') }}
+                {{ selectionMode ? t('planPage.states.selectionDescription') : selectedOperators.length ? t('planPage.states.selectedDescription') : t('planPage.states.favoritesDescription') }}
               </p>
             </div>
-            <button type="button" class="action-btn" @click="pickerOpen = true">
-              {{ t('planPage.actions.addOperator') }}
-            </button>
           </div>
 
-          <div v-if="selectedOperators.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          <div v-if="selectedOperators.length" class="grid grid-cols-3 gap-3.5 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             <article
               v-for="operator in selectedOperators"
               :key="operator.id"
-              class="grid gap-3 rounded-panel panel-soft p-3"
+              class="grid content-start gap-2 rounded-panel panel-soft p-3"
+              :class="selectionMode && pendingRemovalIds.includes(operator.id) ? 'border-[rgba(255,120,120,0.4)] bg-[rgba(120,20,28,0.2)]' : selectionMode ? 'border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)]' : ''"
             >
               <button
                 type="button"
-                class="grid gap-2 border-0 bg-transparent p-0 text-left text-white"
+                class="grid content-start gap-2 border-0 bg-transparent p-0 text-left text-white transition-all duration-200 hover:border-[rgba(133,182,255,0.45)] hover:-translate-y-0.5"
                 @click="openOperatorPlan(operator.id)"
               >
                 <div class="relative mx-auto w-fit">
+                  <span
+                    v-if="selectionMode"
+                    class="absolute right-1 top-1 z-3 inline-flex h-6 w-6 items-center justify-center rounded-full border text-[0.82rem]"
+                    :class="pendingRemovalIds.includes(operator.id) ? 'border-[rgba(255,120,120,0.38)] bg-[rgba(255,120,120,0.18)] text-[#ffb3b3]' : 'border-[rgba(255,255,255,0.12)] bg-[rgba(10,15,30,0.82)] text-[rgba(191,201,220,0.72)]'"
+                  >
+                    <el-icon><Check /></el-icon>
+                  </span>
                   <span class="operator-stars-overlay text-gold">{{ '★'.repeat(operator.rarity) }}</span>
                   <OperatorPortrait :char-id="operator.id" :name="operator.name" :hue="operator.thumbnailHue" size="md" />
                 </div>
-                <strong class="truncate text-center text-[0.98rem] leading-tight tracking-[-0.03em]">
+                <strong class="truncate text-center text-[1rem] leading-tight tracking-[-0.03em]">
                   {{ operator.name }}
                 </strong>
-                <span class="truncate text-center text-[0.74rem] text-[rgba(191,201,220,0.64)]">
-                  {{ translateProfession(operator.profession) }}
-                </span>
-              </button>
-              <button type="button" class="ghost-link justify-self-end" @click="removeOperator(operator.id)">
-                {{ t('planPage.actions.removeOperator') }}
               </button>
             </article>
           </div>
 
-          <div v-else-if="favoriteOperators.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          <div v-else-if="favoriteOperators.length" class="grid grid-cols-3 gap-3.5 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             <button
               v-for="operator in favoriteOperators"
               :key="operator.id"
               type="button"
-              class="grid gap-3 rounded-panel panel-soft p-3 text-left text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-[rgba(133,182,255,0.45)]"
+              class="grid content-start gap-2 rounded-panel panel-soft p-3 text-left text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-[rgba(133,182,255,0.45)]"
               @click="addOperator(operator.id)"
             >
               <div class="relative mx-auto w-fit">
                 <span class="operator-stars-overlay text-gold">{{ '★'.repeat(operator.rarity) }}</span>
                 <OperatorPortrait :char-id="operator.id" :name="operator.name" :hue="operator.thumbnailHue" size="md" />
               </div>
-              <div class="grid gap-1 text-center">
-                <strong class="truncate text-[0.98rem] leading-tight tracking-[-0.03em]">
-                  {{ operator.name }}
-                </strong>
-                <span class="truncate text-[0.74rem] text-[rgba(191,201,220,0.64)]">
-                  {{ translateProfession(operator.profession) }}
-                </span>
-              </div>
+              <strong class="truncate text-center text-[1rem] leading-tight tracking-[-0.03em]">
+                {{ operator.name }}
+              </strong>
             </button>
           </div>
 
@@ -358,37 +402,36 @@ export default {
         </section>
 
         <template v-else-if="summaryEntries.length">
-          <section
-            v-if="showSummaryResourceOverview"
-            class="grid gap-3"
-            :class="showSummaryExp && showSummaryLmd ? 'sm:grid-cols-3' : 'sm:grid-cols-2'"
-          >
+          <section v-if="showSummaryResourceOverview" class="grid gap-2">
             <article class="stat-card">
               <span class="eyebrow">{{ t('planPage.summary.operators') }}</span>
               <strong class="text-[1.5rem] text-white font-700">{{ formatNumber(summaryTotals.operatorCount) }}</strong>
             </article>
-            <article v-if="showSummaryExp" class="grid gap-2 rounded-panel panel-soft p-4 text-center">
-              <span class="eyebrow">{{ t('planPage.summary.expLabel') }}</span>
-              <div class="mx-auto">
-                <ItemIcon
-                  :item-id="expItemId"
-                  :icon-id="itemsById[expItemId]?.iconId"
-                  :name="itemsById[expItemId]?.name ?? t('planPage.summary.expLabel')"
-                />
-              </div>
-              <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(summaryFarming.exp) }}</strong>
-            </article>
-            <article v-if="showSummaryLmd" class="grid gap-2 rounded-panel panel-soft p-4 text-center">
-              <span class="eyebrow">{{ t('planPage.summary.lmdLabel') }}</span>
-              <div class="mx-auto">
-                <ItemIcon
-                  :item-id="summaryFarming.lmdItem?.id ?? '4001'"
-                  :icon-id="summaryFarming.lmdItem?.iconId"
-                  :name="summaryFarming.lmdItem?.name ?? t('planPage.summary.lmdLabel')"
-                />
-              </div>
-              <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(summaryFarming.lmd) }}</strong>
-            </article>
+
+            <div class="grid grid-cols-2 gap-3">
+              <article v-if="showSummaryExp" class="grid gap-1.5 rounded-panel panel-soft p-3 text-center">
+                <span class="eyebrow">{{ t('planPage.summary.expLabel') }}</span>
+                <div class="mx-auto">
+                  <ItemIcon
+                    :item-id="expItemId"
+                    :icon-id="itemsById[expItemId]?.iconId"
+                    :name="itemsById[expItemId]?.name ?? t('planPage.summary.expLabel')"
+                  />
+                </div>
+                <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(summaryFarming.exp) }}</strong>
+              </article>
+              <article v-if="showSummaryLmd" class="grid gap-1.5 rounded-panel panel-soft p-3 text-center">
+                <span class="eyebrow">{{ t('planPage.summary.lmdLabel') }}</span>
+                <div class="mx-auto">
+                  <ItemIcon
+                    :item-id="summaryFarming.lmdItem?.id ?? '4001'"
+                    :icon-id="summaryFarming.lmdItem?.iconId"
+                    :name="summaryFarming.lmdItem?.name ?? t('planPage.summary.lmdLabel')"
+                  />
+                </div>
+                <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(summaryFarming.lmd) }}</strong>
+              </article>
+            </div>
           </section>
 
           <section v-else class="grid gap-3">
@@ -436,7 +479,7 @@ export default {
             </p>
           </section>
 
-          <section class="grid gap-3 rounded-panel panel-soft p-4">
+          <section class="grid gap-3">
             <div class="grid gap-1">
               <h2 class="m-0 text-[1rem] text-white font-700">
                 {{ t('planPage.summary.materialsTitle') }}

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ItemEntry, UserPlanOperator } from '~/types/operator'
-import { ArrowLeft } from '@element-plus/icons-vue'
+import { ArrowLeft, DocumentChecked } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -30,7 +31,7 @@ const { region } = useRegionPreference()
 const isLoading = ref(true)
 const isSaving = ref(false)
 const errorMessage = ref('')
-const saveMessage = ref('')
+const saveState = ref<'idle' | 'success' | 'error'>('idle')
 const operator = ref<Awaited<ReturnType<typeof getOperatorById>>>()
 const localPlan = ref<UserPlanOperator>()
 const itemsById = ref<Record<string, ItemEntry>>({})
@@ -72,8 +73,18 @@ const targetEliteCap = computed(() =>
 const visibleModules = computed(() =>
   operator.value?.modules.filter(module => getModuleMaxStage(module.uniEquipId) > 0) ?? [],
 )
+const saveButtonClass = computed(() => {
+  if (saveState.value === 'success')
+    return 'text-[#7ee787] border-[rgba(126,231,135,0.28)] bg-[rgba(126,231,135,0.08)]'
+
+  if (saveState.value === 'error')
+    return 'text-[#ffb3b3] border-[rgba(255,120,120,0.28)] bg-[rgba(255,120,120,0.08)]'
+
+  return ''
+})
 
 const operatorId = computed(() => String((route.params as { operatorId?: string }).operatorId ?? '').trim())
+let saveStateResetTimer: ReturnType<typeof setTimeout> | undefined
 
 async function loadDetailPage() {
   if (!operatorId.value) {
@@ -84,7 +95,7 @@ async function loadDetailPage() {
 
   isLoading.value = true
   errorMessage.value = ''
-  saveMessage.value = ''
+  saveState.value = 'idle'
 
   try {
     const [detail, plan, items] = await Promise.all([
@@ -121,17 +132,31 @@ async function savePlan() {
     return
 
   isSaving.value = true
-  saveMessage.value = ''
 
   try {
     localPlan.value = await saveUserPlanOperator(localPlan.value)
-    saveMessage.value = t('planPage.detail.saved')
+    setSaveState('success')
+    ElMessage.success(t('planPage.detail.saved'))
   }
   catch (error) {
-    saveMessage.value = String(error)
+    setSaveState('error')
+    ElMessage.error(String(error))
   }
   finally {
     isSaving.value = false
+  }
+}
+
+function setSaveState(nextState: 'idle' | 'success' | 'error') {
+  saveState.value = nextState
+
+  if (saveStateResetTimer)
+    clearTimeout(saveStateResetTimer)
+
+  if (nextState !== 'idle') {
+    saveStateResetTimer = setTimeout(() => {
+      saveState.value = 'idle'
+    }, 1800)
   }
 }
 
@@ -218,6 +243,12 @@ export default {
       <template #left>
         <button type="button" class="top-bar-icon" @click="router.push('/plan')">
           <el-icon><ArrowLeft /></el-icon>
+        </button>
+      </template>
+
+      <template #right>
+        <button type="button" class="top-bar-icon" :class="saveButtonClass" :disabled="isSaving" @click="savePlan">
+          <el-icon><DocumentChecked /></el-icon>
         </button>
       </template>
     </TopBar>
@@ -409,10 +440,9 @@ export default {
 
             <div
               v-if="showResourceOverview"
-              class="grid gap-3"
-              :class="showExpOverview && showLmdOverview ? 'grid-cols-2' : 'grid-cols-1'"
+              class="grid grid-cols-2 gap-3"
             >
-              <article v-if="showExpOverview" class="grid gap-2 rounded-panel bg-[rgba(255,255,255,0.03)] p-3 text-center">
+              <article v-if="showExpOverview" class="grid gap-1.5 rounded-panel bg-[rgba(255,255,255,0.03)] p-3 text-center">
                 <span class="text-[0.8rem] text-[rgba(191,201,220,0.72)]">{{ t('planPage.summary.expLabel') }}</span>
                 <div class="mx-auto">
                   <ItemIcon
@@ -424,7 +454,7 @@ export default {
                 <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(farmingEstimate?.exp ?? 0) }}</strong>
               </article>
 
-              <article v-if="showLmdOverview" class="grid gap-2 rounded-panel bg-[rgba(255,255,255,0.03)] p-3 text-center">
+              <article v-if="showLmdOverview" class="grid gap-1.5 rounded-panel bg-[rgba(255,255,255,0.03)] p-3 text-center">
                 <span class="text-[0.8rem] text-[rgba(191,201,220,0.72)]">{{ t('planPage.summary.lmdLabel') }}</span>
                 <div class="mx-auto">
                   <ItemIcon
@@ -466,14 +496,6 @@ export default {
               </p>
             </div>
 
-            <div class="flex items-center justify-between gap-3">
-              <button type="button" class="action-btn" :disabled="isSaving" @click="savePlan">
-                {{ isSaving ? t('planPage.detail.saving') : t('planPage.detail.save') }}
-              </button>
-              <span v-if="saveMessage" class="text-[0.76rem] text-[rgba(191,201,220,0.68)]">
-                {{ saveMessage }}
-              </span>
-            </div>
           </section>
 
           <section class="grid gap-3">
