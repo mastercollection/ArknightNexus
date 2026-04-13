@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 
 use crate::cache_model::{
-    CachedBlackboardEntry, CachedOperator, CachedOperatorPotential, CachedOperatorSkill,
+    CachedBlackboardEntry, CachedBuildingCost, CachedBuildingRequireRoom, CachedItem, CachedItemBuildingProduct, CachedItemStageDrop, CachedManufactFormula, CachedOperator, CachedOperatorPotential, CachedOperatorSkill,
     CachedOperatorModule, CachedModuleBattlePart, CachedModuleBattlePhase, CachedModuleCost,
     CachedModuleTalentCandidate, CachedModuleTraitCandidate, CachedOperatorRange,
     CachedOperatorRangeGrid, CachedOperatorSkillLevel, CachedOperatorStatPoint,
-    CachedOperatorStatProgression, CachedOperatorTalent, CachedOperatorTrait,
+    CachedOperatorStatProgression, CachedOperatorTalent, CachedOperatorTrait, CachedWorkshopExtraOutcome, CachedWorkshopFormula,
 };
 use crate::data_sources::RegionCode;
 use crate::raw_models::{
     RawBattleEquipEntry, RawBattleEquipPart, RawBattleEquipTable, RawBattleEquipTalentCandidate,
-    RawBattleEquipTraitCandidate, RawBlackboard, RawCharacterEntry, RawCharacterTable,
+    RawBattleEquipTraitCandidate, RawBlackboard, RawBuildingData, RawCharacterEntry, RawCharacterTable,
     RawEquipEntry, RawFavorTable, RawItemEntry, RawKeyFrame, RawLevelValue, RawNumberValue,
     RawPhaseValue, RawPotentialRank, RawRangeEntry, RawRangeTable, RawRarityValue, RawSkillEntry,
     RawSkillLevel, RawSkillReference, RawSkillTable, RawTalentCandidate, RawTraitCandidate,
@@ -54,6 +54,144 @@ pub fn normalize_operators(
     });
 
     operators
+}
+
+pub fn normalize_items(items: HashMap<String, RawItemEntry>) -> Vec<CachedItem> {
+    let mut normalized = items
+        .into_values()
+        .map(|item| CachedItem {
+            item_id: item.item_id,
+            name: item.name,
+            description: item.description.unwrap_or_default(),
+            rarity: item.rarity.as_string(),
+            icon_id: item.icon_id,
+            sort_id: item.sort_id,
+            usage: item.usage.unwrap_or_default(),
+            obtain_approach: item.obtain_approach.unwrap_or_default(),
+            classify_type: item.classify_type,
+            item_type: item.item_type.as_string(),
+            stage_drop_list: item
+                .stage_drop_list
+                .into_iter()
+                .map(|entry| CachedItemStageDrop {
+                    stage_id: entry.stage_id,
+                    occ_per: entry.occ_per,
+                })
+                .collect(),
+            building_product_list: item
+                .building_product_list
+                .into_iter()
+                .map(|entry| CachedItemBuildingProduct {
+                    room_type: entry.room_type,
+                    formula_id: entry.formula_id,
+                })
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+
+    normalized.sort_by(|left, right| {
+        left.sort_id
+            .cmp(&right.sort_id)
+            .then_with(|| left.name.cmp(&right.name))
+            .then_with(|| left.item_id.cmp(&right.item_id))
+    });
+
+    normalized
+}
+
+pub fn normalize_building_data(
+    data: RawBuildingData,
+) -> (Vec<CachedManufactFormula>, Vec<CachedWorkshopFormula>) {
+    let mut manufact_formulas = data
+        .manufact_formulas
+        .into_values()
+        .map(|formula| CachedManufactFormula {
+            formula_id: formula.formula_id,
+            item_id: formula.item_id,
+            count: formula.count,
+            weight: formula.weight,
+            cost_point: formula.cost_point,
+            formula_type: formula.formula_type,
+            buff_type: formula.buff_type,
+            costs: formula
+                .costs
+                .into_iter()
+                .map(|cost| CachedBuildingCost {
+                    id: cost.id,
+                    count: cost.count.as_f64(),
+                    cost_type: cost.cost_type,
+                })
+                .collect(),
+            require_rooms: formula
+                .require_rooms
+                .into_iter()
+                .map(|room| CachedBuildingRequireRoom {
+                    room_id: room.room_id,
+                    room_level: room.room_level,
+                    room_count: room.room_count,
+                })
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+
+    manufact_formulas.sort_by(|left, right| {
+        left.item_id
+            .cmp(&right.item_id)
+            .then_with(|| left.formula_id.cmp(&right.formula_id))
+    });
+
+    let mut workshop_formulas = data
+        .workshop_formulas
+        .into_values()
+        .map(|formula| CachedWorkshopFormula {
+            sort_id: formula.sort_id,
+            formula_id: formula.formula_id,
+            rarity: formula.rarity,
+            item_id: formula.item_id,
+            count: formula.count,
+            gold_cost: formula.gold_cost,
+            ap_cost: formula.ap_cost,
+            formula_type: formula.formula_type,
+            buff_type: formula.buff_type,
+            extra_outcome_rate: formula.extra_outcome_rate,
+            extra_outcome_group: formula
+                .extra_outcome_group
+                .into_iter()
+                .map(|entry| CachedWorkshopExtraOutcome {
+                    weight: entry.weight,
+                    item_id: entry.item_id,
+                    item_count: entry.item_count,
+                })
+                .collect(),
+            costs: formula
+                .costs
+                .into_iter()
+                .map(|cost| CachedBuildingCost {
+                    id: cost.id,
+                    count: cost.count.as_f64(),
+                    cost_type: cost.cost_type,
+                })
+                .collect(),
+            require_rooms: formula
+                .require_rooms
+                .into_iter()
+                .map(|room| CachedBuildingRequireRoom {
+                    room_id: room.room_id,
+                    room_level: room.room_level,
+                    room_count: room.room_count,
+                })
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+
+    workshop_formulas.sort_by(|left, right| {
+        left.sort_id
+            .cmp(&right.sort_id)
+            .then_with(|| left.item_id.cmp(&right.item_id))
+            .then_with(|| left.formula_id.cmp(&right.formula_id))
+    });
+
+    (manufact_formulas, workshop_formulas)
 }
 
 fn normalize_operator(
@@ -451,6 +589,7 @@ fn normalize_skill_reference(
 
     Some(CachedOperatorSkill {
         id: skill_id,
+        icon_id: skill.icon_id.clone().filter(|value| !value.trim().is_empty()),
         name: first_level.name.clone(),
         recovery_type: map_sp_recovery(first_level.sp_data.as_ref().map(|value| &value.sp_type)),
         activation_type: map_activation_type(first_level.skill_type.as_deref()),

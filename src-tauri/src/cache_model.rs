@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 14;
+pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 20;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -8,6 +8,23 @@ pub struct CachedBlackboardEntry {
     pub key: String,
     pub value: Option<f64>,
     pub value_str: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedOperatorSummary {
+    pub id: String,
+    pub name: String,
+    pub rarity: u8,
+    pub profession: String,
+    pub branch: String,
+    #[serde(default)]
+    pub teams: Vec<String>,
+    #[serde(default)]
+    pub nations: Vec<String>,
+    #[serde(default)]
+    pub groups: Vec<String>,
+    pub thumbnail_hue: u16,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -183,6 +200,8 @@ pub struct CachedOperatorRangeGrid {
 #[serde(rename_all = "camelCase")]
 pub struct CachedOperatorSkill {
     pub id: String,
+    #[serde(default)]
+    pub icon_id: Option<String>,
     pub name: String,
     pub recovery_type: String,
     pub activation_type: String,
@@ -192,6 +211,101 @@ pub struct CachedOperatorSkill {
     #[serde(default)]
     pub unlock_level: u32,
     pub levels: Vec<CachedOperatorSkillLevel>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedItemStageDrop {
+    pub stage_id: String,
+    pub occ_per: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedBuildingRequireRoom {
+    pub room_id: String,
+    pub room_level: i64,
+    pub room_count: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedWorkshopExtraOutcome {
+    pub weight: i64,
+    pub item_id: String,
+    pub item_count: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedManufactFormula {
+    pub formula_id: String,
+    pub item_id: String,
+    pub count: i64,
+    pub weight: i64,
+    pub cost_point: i64,
+    pub formula_type: String,
+    pub buff_type: String,
+    #[serde(default)]
+    pub costs: Vec<CachedBuildingCost>,
+    #[serde(default)]
+    pub require_rooms: Vec<CachedBuildingRequireRoom>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedWorkshopFormula {
+    pub sort_id: i64,
+    pub formula_id: String,
+    pub rarity: i64,
+    pub item_id: String,
+    pub count: i64,
+    pub gold_cost: i64,
+    pub ap_cost: i64,
+    pub formula_type: String,
+    pub buff_type: String,
+    pub extra_outcome_rate: f64,
+    #[serde(default)]
+    pub extra_outcome_group: Vec<CachedWorkshopExtraOutcome>,
+    #[serde(default)]
+    pub costs: Vec<CachedBuildingCost>,
+    #[serde(default)]
+    pub require_rooms: Vec<CachedBuildingRequireRoom>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedBuildingCost {
+    pub id: String,
+    pub count: f64,
+    #[serde(rename = "type")]
+    pub cost_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedItemBuildingProduct {
+    pub room_type: String,
+    pub formula_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedItem {
+    pub item_id: String,
+    pub name: String,
+    pub description: String,
+    pub rarity: String,
+    pub icon_id: String,
+    pub sort_id: i64,
+    pub usage: String,
+    pub obtain_approach: String,
+    pub classify_type: String,
+    pub item_type: String,
+    #[serde(default)]
+    pub stage_drop_list: Vec<CachedItemStageDrop>,
+    #[serde(default)]
+    pub building_product_list: Vec<CachedItemBuildingProduct>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -239,5 +353,23 @@ pub struct RegionSnapshot {
     pub source_revision: String,
     pub fetched_at: String,
     #[serde(default)]
+    pub items: Vec<CachedItem>,
+    #[serde(default)]
+    pub manufact_formulas: Vec<CachedManufactFormula>,
+    #[serde(default)]
+    pub workshop_formulas: Vec<CachedWorkshopFormula>,
+    #[serde(default)]
     pub operators: Vec<CachedOperator>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegionSummarySnapshot {
+    #[serde(default)]
+    pub schema_version: u32,
+    pub region: String,
+    pub source_revision: String,
+    pub fetched_at: String,
+    #[serde(default)]
+    pub operators: Vec<CachedOperatorSummary>,
 }

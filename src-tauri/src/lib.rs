@@ -1,3 +1,5 @@
+use tauri::Manager;
+
 mod cache;
 mod cache_model;
 mod canonical;
@@ -23,9 +25,21 @@ pub fn run() {
         )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_upload::init())
+        .setup(|app| {
+            #[cfg(all(debug_assertions, not(mobile)))]
+            {
+                for webview in app.webview_windows().values() {
+                    let _ = webview.open_devtools();
+                }
+            }
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::sync_region_data,
             commands::list_operators,
+            commands::list_items,
+            commands::list_building_formulas,
             commands::get_operator_detail,
             commands::get_region_sync_status,
             commands::get_region_terms,

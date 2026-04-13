@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 mod battle_equip;
+mod building_data;
 mod character;
 mod favor_table;
 mod gamedata_const;
@@ -14,6 +15,7 @@ use serde::de::{DeserializeOwned, Error as DeError};
 use serde::{Deserialize, Deserializer};
 
 pub use battle_equip::*;
+pub use building_data::*;
 pub use character::*;
 pub use favor_table::*;
 pub use gamedata_const::*;

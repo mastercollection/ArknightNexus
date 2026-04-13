@@ -1,4 +1,5 @@
 export * from './dark'
+export * from './useInfiniteSlice'
 export * from './useOperatorDetailViewModel'
 export * from './useRegionPreference'
 export * from './useRichDescription'

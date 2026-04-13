@@ -1,8 +1,11 @@
 import type {
+  BuildingFormulaBundle,
+  ItemEntry,
   OperatorDetail,
   OperatorFilters,
   OperatorStatPoint,
   OperatorSummary,
+  PenguinMatrixEntry,
   RegionCode,
   RegionSyncStatus,
   RegionTerms,
@@ -41,9 +44,11 @@ function toSummary(operator: OperatorDetail): OperatorSummary {
 const regionReadyCache = new Set<RegionCode>()
 const regionTermsCache = new Map<RegionCode, RegionTerms>()
 const resolvedImageSourceCache = new Map<string, ResolvedImageSource>()
+const penguinMatrixCache = new Map<string, PenguinMatrixEntry[]>()
 const IMAGE_REMOTE_BASE_URL = 'https://raw.githubusercontent.com/fexli/ArknightsResource/refs/heads/main'
+const PENGUIN_MATRIX_ENDPOINT = 'https://penguin-stats.io/PenguinStats/api/v2/result/matrix'
 
-export type CachedImageKind = 'portrait' | 'moduleEquip' | 'moduleType' | 'skillIcon'
+export type CachedImageKind = 'portrait' | 'moduleEquip' | 'moduleType' | 'skillIcon' | 'itemIcon'
 
 export interface ImageSourceRequest {
   kind: CachedImageKind
@@ -95,7 +100,7 @@ function normalizeImageId(value: string) {
   if (!normalized || normalized.includes('/') || normalized.includes('\\') || normalized.includes('..'))
     return undefined
 
-  if (!/^[\w.-]+$/.test(normalized))
+  if (!/^[\w.\-[\]]+$/.test(normalized))
     return undefined
 
   return normalized
@@ -131,6 +136,15 @@ function buildImageDescriptor(kind: CachedImageKind, id: string): ImageDescripto
       relativePath: `images/skills/${getImageFileName(normalizedId)}`,
       partRelativePath: `images/skills/${getImageFileName(normalizedId)}.part`,
       candidateUrls: [`${IMAGE_REMOTE_BASE_URL}/skills/skill_icon_${normalizedId}.png`],
+    }
+  }
+
+  if (kind === 'itemIcon') {
+    return {
+      parentRelativePath: 'images/items',
+      relativePath: `images/items/${getImageFileName(normalizedId)}`,
+      partRelativePath: `images/items/${getImageFileName(normalizedId)}.part`,
+      candidateUrls: [`${IMAGE_REMOTE_BASE_URL}/items/${normalizedId}.png`],
     }
   }
 
@@ -417,6 +431,118 @@ export async function listOperators(
       profession: filters.profession ?? null,
     },
   })
+}
+
+export async function listItems(
+  region: RegionCode = DEFAULT_REGION,
+  classifyType?: string | null,
+): Promise<ItemEntry[]> {
+  setI18nLocale(region)
+  if (!canUseTauri())
+    return []
+
+  await ensureRegionReady(region)
+
+  return invoke<ItemEntry[]>('list_items', {
+    request: {
+      region,
+      classifyType: classifyType?.trim() || null,
+    },
+  })
+}
+
+export async function listBuildingFormulas(
+  region: RegionCode = DEFAULT_REGION,
+): Promise<BuildingFormulaBundle> {
+  setI18nLocale(region)
+  if (!canUseTauri()) {
+    return {
+      manufactFormulas: [],
+      workshopFormulas: [],
+    }
+  }
+
+  await ensureRegionReady(region)
+
+  return invoke<BuildingFormulaBundle>('list_building_formulas', {
+    request: { region },
+  })
+}
+
+export async function getItemById(
+  id: string,
+  region: RegionCode = DEFAULT_REGION,
+): Promise<ItemEntry | undefined> {
+  const normalizedId = id.trim()
+  if (!normalizedId)
+    return undefined
+
+  const items = await listItems(region)
+  return items.find(item => item.itemId === normalizedId)
+}
+
+interface PenguinMatrixResponseEntry {
+  stageId: string
+  itemId: string
+  quantity: number
+  times: number
+  start?: string | null
+  end?: string | null
+}
+
+interface PenguinMatrixResponse {
+  matrix?: Array<{
+    stageId: string
+    itemId: string
+    quantity: number
+    times: number
+    start?: string | null
+    end?: string | null
+  }>
+}
+
+export async function getPenguinItemMatrix(
+  itemId: string,
+  server: 'CN' | 'US' | 'JP' | 'KR' = 'CN',
+): Promise<PenguinMatrixEntry[]> {
+  const normalizedItemId = itemId.trim()
+  if (!normalizedItemId)
+    return []
+
+  const cacheKey = `${server}:${normalizedItemId}`
+  if (penguinMatrixCache.has(cacheKey))
+    return penguinMatrixCache.get(cacheKey) ?? []
+
+  const url = new URL(PENGUIN_MATRIX_ENDPOINT)
+  url.searchParams.set('itemFilter', normalizedItemId)
+  url.searchParams.set('server', server)
+
+  const response = await fetch(url.toString())
+  if (!response.ok)
+    throw new Error(`Penguin Stats request failed: ${response.status}`)
+
+  const payload = await response.json() as PenguinMatrixResponse | PenguinMatrixResponseEntry[]
+  const matrix = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload.matrix)
+      ? payload.matrix
+      : []
+
+  const result = matrix
+    .filter(entry => entry.itemId === normalizedItemId && entry.times > 0 && entry.quantity > 0)
+    .map(entry => ({
+      stageId: entry.stageId,
+      itemId: entry.itemId,
+      quantity: entry.quantity,
+      times: entry.times,
+      start: entry.start ?? null,
+      end: entry.end ?? null,
+      dropRate: entry.quantity / entry.times,
+    }))
+    .sort((left, right) => right.dropRate - left.dropRate || right.times - left.times || left.stageId.localeCompare(right.stageId))
+
+  penguinMatrixCache.set(cacheKey, result)
+  return result
 }
 
 export async function getOperatorById(

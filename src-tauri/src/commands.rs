@@ -2,7 +2,10 @@ use serde::Deserialize;
 use tauri::AppHandle;
 use std::collections::HashMap;
 
-use crate::canonical::{OperatorDetailDto, OperatorSummaryDto, RegionSyncStatus, SyncResult};
+use crate::canonical::{
+    BuildingFormulaBundleDto, ItemDto, OperatorDetailDto, OperatorSummaryDto, RegionSyncStatus,
+    SyncResult,
+};
 use crate::data_sources::RegionCode;
 use crate::errors::AppError;
 use crate::service;
@@ -20,6 +23,19 @@ pub struct ListOperatorsRequest {
     pub query: Option<String>,
     pub rarity: Option<u8>,
     pub profession: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListItemsRequest {
+    pub region: String,
+    pub classify_type: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListBuildingFormulasRequest {
+    pub region: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -60,6 +76,24 @@ pub fn list_operators(
         request.profession.as_deref(),
     )
     .map_err(map_error)
+}
+
+#[tauri::command]
+pub fn list_items(
+    app: AppHandle,
+    request: ListItemsRequest,
+) -> Result<Vec<ItemDto>, String> {
+    let region = parse_region(&request.region)?;
+    service::list_items(&app, region, request.classify_type.as_deref()).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn list_building_formulas(
+    app: AppHandle,
+    request: ListBuildingFormulasRequest,
+) -> Result<BuildingFormulaBundleDto, String> {
+    let region = parse_region(&request.region)?;
+    service::list_building_formulas(&app, region).map_err(map_error)
 }
 
 #[tauri::command]

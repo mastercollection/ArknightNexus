@@ -143,6 +143,114 @@ const messages = {
         reset: '필터 초기화',
       },
     },
+    home: {
+      hero: {
+        title: '탐색 허브',
+      },
+      search: {
+        eyebrow: '빠른 탐색',
+        placeholder: '오퍼레이터 이름, 직군, 진영 검색',
+        action: '오퍼레이터 검색',
+      },
+      menu: {
+        status: {
+          active: '활성',
+          pending: '준비중',
+        },
+        operators: {
+          caption: '오퍼레이터 도감과 상세 스탯',
+        },
+        enemies: {
+          caption: '적 타입과 위협 요소 정리',
+        },
+        operations: {
+          caption: '맵 구조와 오퍼레이션 흐름',
+        },
+        items: {
+          caption: '재화와 파밍 동선 관리',
+        },
+        plan: {
+          caption: '육성과 제작 계획을 정리',
+        },
+      },
+      states: {
+        loadingOperators: '오퍼레이터 데이터를 불러오는 중입니다.',
+      },
+      settings: {
+        title: '홈 설정',
+        syncStatusTitle: '현재 동기화 상태',
+        syncReady: '준비됨',
+        syncNeeded: '동기화 필요',
+        syncAction: '동기화 실행',
+        morePending: '추가 설정은 준비 중',
+      },
+      messages: {
+        settingsPending: '세부 설정 화면은 준비 중입니다.',
+      },
+    },
+    itemsPage: {
+      topBar: {
+        title: '아이템 목록',
+        description: '동기화된 아이템 데이터를 지역 기준으로 확인합니다.',
+      },
+      search: {
+        placeholder: '이름, 타입, 획득처 검색',
+      },
+      states: {
+        loading: '아이템 데이터를 불러오는 중입니다.',
+        error: '아이템 데이터를 불러오지 못했습니다.',
+        empty: '조건에 맞는 아이템이 없습니다.',
+      },
+    },
+    itemsDetail: {
+      topBar: {
+        title: '아이템 상세',
+        description: '아이템 기본 정보와 획득 정보를 확인합니다.',
+      },
+      sort: {
+        dropRate: '드랍률',
+        sampleCount: '표본 수',
+      },
+      sections: {
+        description: '설명',
+        usage: '용도',
+        stageDrops: '드랍 가능 스테이지',
+        penguinDrops: '펭귄 통계',
+        buildingRecipes: '제조 레시피',
+        recipeCosts: '필요 재료',
+      },
+      labels: {
+        rarity: '희귀도',
+        classifyType: '분류',
+        itemType: '아이템 타입',
+        obtainApproach: '획득처',
+        dropRate: '드랍률',
+        sampleCount: '표본 수',
+        dropSourceStatic: '게임 데이터',
+        dropSourcePenguin: 'Penguin Stats · {server}',
+        formulaId: '공식',
+      },
+      states: {
+        error: '아이템 상세를 불러오지 못했습니다.',
+        notFound: '아이템을 찾을 수 없습니다.',
+        notFoundDescription: '현재 지역 데이터에 해당 아이템이 없습니다.',
+        backToList: '목록으로 돌아가기',
+        noStageDrops: '등록된 드랍 가능 스테이지가 없습니다.',
+        penguinError: 'Penguin Stats 데이터를 불러오지 못했습니다.',
+        noPenguinDrops: '표시할 Penguin Stats 드랍 데이터가 없습니다.',
+        buildingFormulaError: '제조 데이터를 불러오지 못했습니다.',
+      },
+    },
+    planPage: {
+      topBar: {
+        title: 'Plan',
+        description: '육성과 제작 계획 화면을 준비합니다.',
+      },
+      states: {
+        placeholderTitle: '계획 화면을 준비 중입니다.',
+        placeholderDescription: '다음 단계에서 육성 계획과 제작 계획 기능을 연결합니다.',
+      },
+    },
   },
   cn: {
     profession: {
@@ -273,6 +381,118 @@ const messages = {
         rarity: '稀有度',
         profession: '职业',
         reset: '重置筛选',
+      },
+    },
+    home: {
+      hero: {
+        title: '探索枢纽',
+      },
+      search: {
+        eyebrow: '快速探索',
+        placeholder: '搜索干员名称、职业、阵营',
+        action: '搜索干员',
+      },
+      menu: {
+        status: {
+          active: '启用',
+          pending: '准备中',
+        },
+        operators: {
+          caption: '干员图鉴与详细属性',
+        },
+        enemies: {
+          caption: '敌人类型与威胁要素整理',
+        },
+        operations: {
+          caption: '地图结构与作战流程',
+        },
+        items: {
+          caption: '资源与刷取路线管理',
+        },
+        plan: {
+          caption: '整理养成与制作计划',
+        },
+      },
+      statusPanel: {
+        title: '优先实现干员图鉴',
+        description: '首页以探索为中心进行了简化，目前实际可进入的模块只有 Operators。',
+      },
+      states: {
+        loadingOperators: '正在加载干员数据。',
+      },
+      settings: {
+        title: '首页设置',
+        syncStatusTitle: '当前同步状态',
+        syncReady: '已就绪',
+        syncNeeded: '需要同步',
+        syncAction: '执行同步',
+        morePending: '更多设置准备中',
+      },
+      messages: {
+        settingsPending: '详细设置界面仍在准备中。',
+      },
+    },
+    itemsPage: {
+      topBar: {
+        title: '道具列表',
+        description: '按当前地区查看已同步的道具数据。',
+      },
+      search: {
+        placeholder: '搜索名称、类型、获取途径',
+      },
+      states: {
+        loading: '正在加载道具数据。',
+        error: '无法加载道具数据。',
+        empty: '没有符合条件的道具。',
+      },
+    },
+    itemsDetail: {
+      topBar: {
+        title: '道具详情',
+        description: '查看道具基础信息与获取方式。',
+      },
+      sort: {
+        dropRate: '掉落率',
+        sampleCount: '样本数',
+      },
+      sections: {
+        description: '说明',
+        usage: '用途',
+        stageDrops: '可掉落关卡',
+        penguinDrops: '企鹅物流统计',
+        buildingRecipes: '制造配方',
+        recipeCosts: '所需材料',
+      },
+      labels: {
+        rarity: '稀有度',
+        classifyType: '分类',
+        itemType: '道具类型',
+        obtainApproach: '获取途径',
+        dropRate: '掉落率',
+        sampleCount: '样本数',
+        dropSourceStatic: '游戏数据',
+        dropSourcePenguin: 'Penguin Stats · {server}',
+        formulaId: '配方',
+      },
+      states: {
+        error: '无法加载道具详情。',
+        notFound: '找不到该道具。',
+        notFoundDescription: '当前地区数据中不存在该道具。',
+        backToList: '返回列表',
+        noStageDrops: '没有登记的可掉落关卡。',
+        penguinError: '无法加载 Penguin Stats 数据。',
+        noPenguinDrops: '没有可显示的 Penguin Stats 掉落数据。',
+        buildingFormulaError: '无法加载制造数据。',
+      },
+    },
+    planPage: {
+      topBar: {
+        title: 'Plan',
+        description: '用于养成与制作规划的页面正在准备中。',
+      },
+      states: {
+        placeholderTitle: '计划页面准备中。',
+        placeholderDescription: '下一步会接入养成计划与制作计划功能。',
       },
     },
   },
@@ -407,6 +627,118 @@ const messages = {
         reset: 'フィルターをリセット',
       },
     },
+    home: {
+      hero: {
+        title: '探索ハブ',
+      },
+      search: {
+        eyebrow: 'クイック探索',
+        placeholder: 'オペレーター名、職分、陣営を検索',
+        action: 'オペレーター検索',
+      },
+      menu: {
+        status: {
+          active: '有効',
+          pending: '準備中',
+        },
+        operators: {
+          caption: 'オペレーター図鑑と詳細ステータス',
+        },
+        enemies: {
+          caption: '敵タイプと脅威要素の整理',
+        },
+        operations: {
+          caption: 'マップ構造とオペレーションの流れ',
+        },
+        items: {
+          caption: '資源と周回導線の管理',
+        },
+        plan: {
+          caption: '育成と製造の計画整理',
+        },
+      },
+      statusPanel: {
+        title: 'オペレーター図鑑を優先実装',
+        description: 'トップ画面は探索中心に簡素化しており、現在実際に入れるセクションは Operators のみです。',
+      },
+      states: {
+        loadingOperators: 'オペレーターデータを読み込み中です。',
+      },
+      settings: {
+        title: 'ホーム設定',
+        syncStatusTitle: '現在の同期状態',
+        syncReady: '準備完了',
+        syncNeeded: '同期が必要',
+        syncAction: '同期を実行',
+        morePending: '追加設定は準備中',
+      },
+      messages: {
+        settingsPending: '詳細設定画面は準備中です。',
+      },
+    },
+    itemsPage: {
+      topBar: {
+        title: 'アイテム一覧',
+        description: '同期済みアイテムデータを地域基準で確認します。',
+      },
+      search: {
+        placeholder: '名前、タイプ、入手先で検索',
+      },
+      states: {
+        loading: 'アイテムデータを読み込み中です。',
+        error: 'アイテムデータを読み込めませんでした。',
+        empty: '条件に合うアイテムがありません。',
+      },
+    },
+    itemsDetail: {
+      topBar: {
+        title: 'アイテム詳細',
+        description: 'アイテムの基本情報と入手先を確認します。',
+      },
+      sort: {
+        dropRate: 'ドロップ率',
+        sampleCount: 'サンプル数',
+      },
+      sections: {
+        description: '説明',
+        usage: '用途',
+        stageDrops: 'ドロップ可能ステージ',
+        penguinDrops: 'Penguin Stats 統計',
+        buildingRecipes: '製造レシピ',
+        recipeCosts: '必要素材',
+      },
+      labels: {
+        rarity: 'レア度',
+        classifyType: '分類',
+        itemType: 'アイテムタイプ',
+        obtainApproach: '入手先',
+        dropRate: 'ドロップ率',
+        sampleCount: 'サンプル数',
+        dropSourceStatic: 'ゲームデータ',
+        dropSourcePenguin: 'Penguin Stats · {server}',
+        formulaId: 'レシピ',
+      },
+      states: {
+        error: 'アイテム詳細を読み込めませんでした。',
+        notFound: 'アイテムが見つかりません。',
+        notFoundDescription: '現在の地域データに該当アイテムがありません。',
+        backToList: '一覧へ戻る',
+        noStageDrops: '登録されたドロップ可能ステージがありません。',
+        penguinError: 'Penguin Stats のデータを読み込めませんでした。',
+        noPenguinDrops: '表示できる Penguin Stats ドロップデータがありません。',
+        buildingFormulaError: '製造データを読み込めませんでした。',
+      },
+    },
+    planPage: {
+      topBar: {
+        title: 'Plan',
+        description: '育成や製造の計画ページを準備しています。',
+      },
+      states: {
+        placeholderTitle: '計画ページを準備中です。',
+        placeholderDescription: '次の段階で育成計画と製造計画の機能をつなぎます。',
+      },
+    },
   },
   tw: {
     profession: {
@@ -539,6 +871,118 @@ const messages = {
         reset: '重設篩選',
       },
     },
+    home: {
+      hero: {
+        title: '探索中樞',
+      },
+      search: {
+        eyebrow: '快速探索',
+        placeholder: '搜尋幹員名稱、職業、陣營',
+        action: '搜尋幹員',
+      },
+      menu: {
+        status: {
+          active: '啟用',
+          pending: '準備中',
+        },
+        operators: {
+          caption: '幹員圖鑑與詳細屬性',
+        },
+        enemies: {
+          caption: '敵人類型與威脅要素整理',
+        },
+        operations: {
+          caption: '地圖結構與作戰流程',
+        },
+        items: {
+          caption: '資源與刷取路線管理',
+        },
+        plan: {
+          caption: '整理養成與製造計畫',
+        },
+      },
+      statusPanel: {
+        title: '優先實作幹員圖鑑',
+        description: '首頁以探索為核心做了簡化，目前實際可進入的區塊只有 Operators。',
+      },
+      states: {
+        loadingOperators: '正在載入幹員資料。',
+      },
+      settings: {
+        title: '首頁設定',
+        syncStatusTitle: '目前同步狀態',
+        syncReady: '已就緒',
+        syncNeeded: '需要同步',
+        syncAction: '執行同步',
+        morePending: '更多設定準備中',
+      },
+      messages: {
+        settingsPending: '詳細設定畫面仍在準備中。',
+      },
+    },
+    itemsPage: {
+      topBar: {
+        title: '道具列表',
+        description: '依照目前地區查看已同步的道具資料。',
+      },
+      search: {
+        placeholder: '搜尋名稱、類型、獲取方式',
+      },
+      states: {
+        loading: '正在載入道具資料。',
+        error: '無法載入道具資料。',
+        empty: '沒有符合條件的道具。',
+      },
+    },
+    itemsDetail: {
+      topBar: {
+        title: '道具詳情',
+        description: '查看道具基本資訊與獲取方式。',
+      },
+      sort: {
+        dropRate: '掉落率',
+        sampleCount: '樣本數',
+      },
+      sections: {
+        description: '說明',
+        usage: '用途',
+        stageDrops: '可掉落關卡',
+        penguinDrops: '企鵝物流統計',
+        buildingRecipes: '製造配方',
+        recipeCosts: '所需材料',
+      },
+      labels: {
+        rarity: '稀有度',
+        classifyType: '分類',
+        itemType: '道具類型',
+        obtainApproach: '獲取方式',
+        dropRate: '掉落率',
+        sampleCount: '樣本數',
+        dropSourceStatic: '遊戲資料',
+        dropSourcePenguin: 'Penguin Stats · {server}',
+        formulaId: '配方',
+      },
+      states: {
+        error: '無法載入道具詳情。',
+        notFound: '找不到該道具。',
+        notFoundDescription: '目前地區資料中沒有該道具。',
+        backToList: '返回列表',
+        noStageDrops: '沒有已登記的可掉落關卡。',
+        penguinError: '無法載入 Penguin Stats 資料。',
+        noPenguinDrops: '沒有可顯示的 Penguin Stats 掉落資料。',
+        buildingFormulaError: '無法載入製造資料。',
+      },
+    },
+    planPage: {
+      topBar: {
+        title: 'Plan',
+        description: '正在準備養成與製造規劃頁面。',
+      },
+      states: {
+        placeholderTitle: '計畫頁面準備中。',
+        placeholderDescription: '下一步會接上養成計畫與製造計畫功能。',
+      },
+    },
   },
   en: {
     profession: {
@@ -669,6 +1113,115 @@ const messages = {
         rarity: 'Rarity',
         profession: 'Class',
         reset: 'Reset Filters',
+      },
+    },
+    home: {
+      search: {
+        eyebrow: 'Quick Search',
+        placeholder: 'Search operator name, class, faction',
+        action: 'Search Operators',
+      },
+      menu: {
+        status: {
+          active: 'Active',
+          pending: 'Pending',
+        },
+        operators: {
+          caption: 'Operator index and detailed stats',
+        },
+        enemies: {
+          caption: 'Enemy types and threat notes',
+        },
+        operations: {
+          caption: 'Map structure and operation flow',
+        },
+        items: {
+          caption: 'Currencies and farming route management',
+        },
+        plan: {
+          caption: 'Track upgrade and crafting plans',
+        },
+      },
+      statusPanel: {
+        title: 'Operator index comes first',
+        description: 'The first screen is simplified around navigation, and Operators is the only fully available section right now.',
+      },
+      states: {
+        loadingOperators: 'Loading operator data.',
+      },
+      settings: {
+        title: 'Home Settings',
+        syncStatusTitle: 'Current Sync Status',
+        syncReady: 'Ready',
+        syncNeeded: 'Need Sync',
+        syncAction: 'Run Sync',
+        morePending: 'More settings are coming soon',
+      },
+      messages: {
+        settingsPending: 'Detailed settings are still in progress.',
+      },
+    },
+    itemsPage: {
+      topBar: {
+        title: 'Item List',
+        description: 'Browse synced item data for the current region.',
+      },
+      search: {
+        placeholder: 'Search by name, type, or obtain method',
+      },
+      states: {
+        loading: 'Loading item data.',
+        error: 'Failed to load item data.',
+        empty: 'No items match the current query.',
+      },
+    },
+    itemsDetail: {
+      topBar: {
+        title: 'Item Details',
+        description: 'Review the item basics and acquisition info.',
+      },
+      sort: {
+        dropRate: 'Drop Rate',
+        sampleCount: 'Samples',
+      },
+      sections: {
+        description: 'Description',
+        usage: 'Usage',
+        stageDrops: 'Possible Stages',
+        penguinDrops: 'Penguin Stats',
+        buildingRecipes: 'Crafting Recipes',
+        recipeCosts: 'Required Materials',
+      },
+      labels: {
+        rarity: 'Rarity',
+        classifyType: 'Classify Type',
+        itemType: 'Item Type',
+        obtainApproach: 'Obtain Approach',
+        dropRate: 'Drop Rate',
+        sampleCount: 'Samples',
+        dropSourceStatic: 'Game Data',
+        dropSourcePenguin: 'Penguin Stats · {server}',
+        formulaId: 'Formula',
+      },
+      states: {
+        error: 'Failed to load item details.',
+        notFound: 'Item not found.',
+        notFoundDescription: 'This item is not available in the current region data.',
+        backToList: 'Back to list',
+        noStageDrops: 'No possible drop stages are registered.',
+        penguinError: 'Failed to load Penguin Stats data.',
+        noPenguinDrops: 'No Penguin Stats drop data is available.',
+        buildingFormulaError: 'Failed to load crafting data.',
+      },
+    },
+    planPage: {
+      topBar: {
+        title: 'Plan',
+        description: 'Preparing a workspace for upgrade and crafting plans.',
+      },
+      states: {
+        placeholderTitle: 'The planning view is not ready yet.',
+        placeholderDescription: 'Upgrade planning and crafting planning will be connected in the next step.',
       },
     },
   },

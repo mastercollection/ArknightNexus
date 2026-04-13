@@ -4,7 +4,7 @@ import { ArrowLeft, Filter, Search } from '@element-plus/icons-vue'
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useRegionPreference } from '~/composables'
+import { useInfiniteSlice, useRegionPreference } from '~/composables'
 import { translateProfession } from '~/i18n'
 import { listOperators } from '~/services/operators'
 
@@ -31,6 +31,7 @@ const scrollReady = ref(false)
 const topBarLockUntil = ref(0)
 const upwardTravel = ref(0)
 const downwardTravel = ref(0)
+const loadingCardCount = 12
 
 const options = computed(() => {
   return {
@@ -84,6 +85,14 @@ function applyLocalFilters() {
     return matchesQuery && matchesAffiliation && matchesRarity && matchesProfession
   })
 }
+const {
+  sentinel: operatorLoadSentinel,
+  visibleCount: visibleOperatorCount,
+  visibleItems: visibleOperators,
+} = useInfiniteSlice(operatorList, {
+  initialCount: 36,
+  batchSize: 24,
+})
 
 async function loadOperators() {
   isLoading.value = true
@@ -249,30 +258,59 @@ export default {
         </p>
       </section>
 
-      <section v-else-if="isLoading" class="grid min-h-48 place-content-center gap-2 panel-soft rounded-panel p-4 text-center">
-        <h2 class="m-0">
-          {{ t('operatorsList.states.loadingTitle') }}
-        </h2>
-        <p class="muted-copy">
-          {{ t('operatorsList.states.loadingDescription') }}
-        </p>
+      <section v-else-if="isLoading" class="grid gap-4">
+        <div class="grid gap-1">
+          <h2 class="m-0 text-[1.05rem] text-white font-700">
+            {{ t('operatorsList.states.loadingTitle') }}
+          </h2>
+          <p class="muted-copy">
+            {{ t('operatorsList.states.loadingDescription') }}
+          </p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3.5 lg:grid-cols-5 sm:grid-cols-4 xl:grid-cols-6">
+          <article
+            v-for="index in loadingCardCount"
+            :key="index"
+            class="grid content-start gap-2 panel-soft rounded-panel p-3"
+          >
+            <div class="relative mx-auto w-fit">
+              <div class="grid h-[84px] w-[84px] place-items-center overflow-hidden border border-line rounded-[24px] bg-[rgba(10,15,30,0.92)]">
+                <div class="grid h-full w-full place-items-center bg-[radial-gradient(circle_at_top,rgba(94,182,255,0.12),transparent_64%),rgba(255,255,255,0.02)]">
+                  <div class="h-12 w-12 animate-pulse rounded-[20px] bg-[rgba(255,255,255,0.06)]" />
+                </div>
+              </div>
+            </div>
+
+            <div class="mx-auto h-4 w-[72%] animate-pulse rounded-pill bg-[rgba(255,255,255,0.08)]" />
+          </article>
+        </div>
       </section>
 
-      <section v-else-if="operatorList.length" class="grid grid-cols-3 gap-3.5 lg:grid-cols-5 sm:grid-cols-4 xl:grid-cols-6">
-        <button
-          v-for="operator in operatorList"
-          :key="operator.id"
-          type="button"
-          class="grid content-start gap-2 panel-soft rounded-panel p-3 text-left text-white transition-all duration-200 hover:border-[rgba(133,182,255,0.45)] hover:-translate-y-0.5"
-          @click="router.push(`/operators/${operator.id}`)"
-        >
-          <div class="relative mx-auto w-fit">
-            <span class="operator-stars-overlay text-gold">{{ '★'.repeat(operator.rarity) }}</span>
-            <OperatorPortrait :char-id="operator.id" :name="operator.name" :hue="operator.thumbnailHue" size="md" />
-          </div>
+      <section v-else-if="operatorList.length" class="grid gap-3.5">
+        <div class="grid grid-cols-3 gap-3.5 lg:grid-cols-5 sm:grid-cols-4 xl:grid-cols-6">
+          <button
+            v-for="operator in visibleOperators"
+            :key="operator.id"
+            type="button"
+            class="grid content-start gap-2 panel-soft rounded-panel p-3 text-left text-white transition-all duration-200 hover:border-[rgba(133,182,255,0.45)] hover:-translate-y-0.5"
+            @click="router.push(`/operators/${operator.id}`)"
+          >
+            <div class="relative mx-auto w-fit">
+              <span class="operator-stars-overlay text-gold">{{ '★'.repeat(operator.rarity) }}</span>
+              <OperatorPortrait :char-id="operator.id" :name="operator.name" :hue="operator.thumbnailHue" size="md" />
+            </div>
 
-          <strong class="truncate text-center text-[1rem] leading-tight tracking-[-0.03em]">{{ operator.name }}</strong>
-        </button>
+            <strong class="truncate text-center text-[1rem] leading-tight tracking-[-0.03em]">{{ operator.name }}</strong>
+          </button>
+        </div>
+
+        <div
+          v-if="visibleOperatorCount < operatorList.length"
+          ref="operatorLoadSentinel"
+          class="h-8"
+          aria-hidden="true"
+        />
       </section>
 
       <section v-else class="grid min-h-48 place-content-center gap-2 panel-soft rounded-panel p-4 text-center">

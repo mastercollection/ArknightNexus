@@ -19,8 +19,11 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
-    '/operators': RouteRecordInfo<'/operators', '/operators', Record<never, never>, Record<never, never>, '/operators/[id]'>,
-    '/operators/[id]': RouteRecordInfo<'/operators/[id]', '/operators/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/items': RouteRecordInfo<'/items', '/items', Record<never, never>, Record<never, never>, '/items/[itemId]'>,
+    '/items/[itemId]': RouteRecordInfo<'/items/[itemId]', '/items/:itemId', { itemId: ParamValue<true> }, { itemId: ParamValue<false> }>,
+    '/operators': RouteRecordInfo<'/operators', '/operators', Record<never, never>, Record<never, never>, '/operators/[operatorId]'>,
+    '/operators/[operatorId]': RouteRecordInfo<'/operators/[operatorId]', '/operators/:operatorId', { operatorId: ParamValue<true> }, { operatorId: ParamValue<false> }>,
+    '/plan': RouteRecordInfo<'/plan', '/plan', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -38,12 +41,24 @@ declare module 'vue-router/auto-routes' {
       routes: '/'
       views: never
     }
-    'src/pages/operators.vue': {
-      routes: '/operators' | '/operators/[id]'
+    'src/pages/items.vue': {
+      routes: '/items' | '/items/[itemId]'
       views: 'default'
     }
-    'src/pages/operators/[id].vue': {
-      routes: '/operators/[id]'
+    'src/pages/items/[itemId].vue': {
+      routes: '/items/[itemId]'
+      views: never
+    }
+    'src/pages/operators.vue': {
+      routes: '/operators' | '/operators/[operatorId]'
+      views: 'default'
+    }
+    'src/pages/operators/[operatorId].vue': {
+      routes: '/operators/[operatorId]'
+      views: never
+    }
+    'src/pages/plan.vue': {
+      routes: '/plan'
       views: never
     }
   }

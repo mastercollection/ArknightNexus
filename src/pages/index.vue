@@ -2,7 +2,7 @@
 import type { OperatorSummary, RegionSyncStatus } from '~/types/operator'
 import { RefreshRight, Search, Setting } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useRegionPreference } from '~/composables'
@@ -10,8 +10,8 @@ import { translateProfession } from '~/i18n'
 import { getFeaturedOperators, getRegionSyncStatus, syncRegionData } from '~/services/operators'
 
 const router = useRouter()
-useI18n()
-const { region, regionLabel, regionOptions, setRegion } = useRegionPreference()
+const { t } = useI18n()
+const { region, regionOptions, setRegion } = useRegionPreference()
 const searchQuery = ref('')
 const featuredOperators = ref<OperatorSummary[]>([])
 const syncStatus = ref<RegionSyncStatus | null>(null)
@@ -20,37 +20,46 @@ const errorMessage = ref('')
 const settingsOpen = ref(false)
 const globeIcon = new URL('../assets/icons/globe.svg', import.meta.url).href
 
-const menuItems = [
+const menuItems = computed(() => [
   {
     title: 'Operators',
-    caption: '오퍼레이터 도감과 상세 스탯',
-    status: '활성',
+    caption: t('home.menu.operators.caption'),
+    status: t('home.menu.status.active'),
     enabled: true,
     icon: new URL('../assets/icons/home/operator.webp', import.meta.url).href,
     action: () => router.push('/operators'),
   },
   {
     title: 'Enemies',
-    caption: '적 타입과 위협 요소 정리',
-    status: '준비중',
+    caption: t('home.menu.enemies.caption'),
+    status: t('home.menu.status.pending'),
     enabled: false,
     icon: new URL('../assets/icons/home/enemy.webp', import.meta.url).href,
   },
   {
     title: 'Operations',
-    caption: '맵 구조와 오퍼레이션 흐름',
-    status: '준비중',
+    caption: t('home.menu.operations.caption'),
+    status: t('home.menu.status.pending'),
     enabled: false,
     icon: new URL('../assets/icons/home/operations.webp', import.meta.url).href,
   },
   {
     title: 'Items',
-    caption: '재화와 파밍 동선 관리',
-    status: '준비중',
-    enabled: false,
+    caption: t('home.menu.items.caption'),
+    status: t('home.menu.status.active'),
+    enabled: true,
     icon: new URL('../assets/icons/home/items.webp', import.meta.url).href,
+    action: () => router.push('/items'),
   },
-]
+  {
+    title: 'Plan',
+    caption: t('home.menu.plan.caption'),
+    status: t('home.menu.status.active'),
+    enabled: true,
+    icon: new URL('../assets/icons/home/prts.png', import.meta.url).href,
+    action: () => router.push('/plan'),
+  },
+])
 
 function openOperatorSearch() {
   const query = searchQuery.value.trim()
@@ -117,7 +126,7 @@ function handleSettingsSync() {
 }
 
 function notifySettingsPending() {
-  ElMessage.info('세부 설정 화면은 준비 중입니다.')
+  ElMessage.info(t('home.messages.settingsPending'))
 }
 </script>
 
@@ -163,33 +172,19 @@ export default {
       </template>
     </TopBar>
 
-    <header class="flex items-start justify-between gap-4 panel px-4 py-4.5">
-      <div>
-        <p class="eyebrow">
-          Control Deck
-        </p>
-        <h1 class="section-title">
-          탐색 허브
-        </h1>
-      </div>
-      <span class="rounded-pill bg-[rgba(95,155,255,0.12)] px-2.5 py-1.25 text-[0.74rem] text-accent tracking-[0.08em] uppercase">
-        {{ regionLabel }}
-      </span>
-    </header>
-
     <section class="grid gap-3.5 panel px-4 py-4.5">
       <p class="eyebrow">
-        빠른 탐색
+        {{ t('home.search.eyebrow') }}
       </p>
       <el-input
         v-model="searchQuery"
-        placeholder="오퍼레이터 이름, 직군, 진영 검색"
+        :placeholder="t('home.search.placeholder')"
         :prefix-icon="Search"
         clearable
         @keyup.enter="openOperatorSearch"
       />
       <button type="button" class="action-btn" @click="openOperatorSearch">
-        오퍼레이터 검색
+        {{ t('home.search.action') }}
       </button>
     </section>
 
@@ -219,44 +214,6 @@ export default {
           </div>
         </button>
       </div>
-
-      <aside class="grid gap-3.5 panel p-4">
-        <p class="eyebrow">
-          상태
-        </p>
-        <div class="grid gap-1.5">
-          <strong>오퍼레이터 도감 우선 구현</strong>
-          <p class="muted-copy">
-            첫 화면은 탐색 중심으로 단순화했고, 현재 실제 진입 가능한 섹션은 Operators입니다.
-          </p>
-        </div>
-        <dl class="grid m-0 gap-2.5">
-          <div class="flex justify-between gap-4 border-t border-soft pt-2.5">
-            <dt class="text-[rgba(191,201,220,0.64)]">
-              활성 모듈
-            </dt>
-            <dd class="m-0 text-[#dfe8ff]">
-              1
-            </dd>
-          </div>
-          <div class="flex justify-between gap-4 border-t border-soft pt-2.5">
-            <dt class="text-[rgba(191,201,220,0.64)]">
-              오퍼레이터 수
-            </dt>
-            <dd class="m-0 text-[#dfe8ff]">
-              {{ syncStatus?.operatorCount ?? featuredOperators.length }}
-            </dd>
-          </div>
-          <div class="flex justify-between gap-4 border-t border-soft pt-2.5">
-            <dt class="text-[rgba(191,201,220,0.64)]">
-              동기화 상태
-            </dt>
-            <dd class="m-0 text-[#dfe8ff]">
-              {{ syncStatus?.isReady ? 'Ready' : 'Need Sync' }}
-            </dd>
-          </div>
-        </dl>
-      </aside>
     </section>
 
     <section class="grid gap-3.5">
@@ -285,7 +242,7 @@ export default {
 
       <div v-else-if="isLoading" class="grid gap-2.5 border border-soft rounded-[18px] bg-[rgba(255,255,255,0.03)] p-4">
         <p class="m-0 text-[rgba(215,223,239,0.75)]">
-          오퍼레이터 데이터를 불러오는 중입니다.
+          {{ t('home.states.loadingOperators') }}
         </p>
       </div>
 
@@ -324,7 +281,7 @@ export default {
           App Controls
         </p>
         <h2 class="m-0 text-[1.2rem] font-700">
-          홈 설정
+          {{ t('home.settings.title') }}
         </h2>
       </div>
 
@@ -350,17 +307,17 @@ export default {
       </div>
 
       <div class="grid gap-2 rounded-card bg-[rgba(255,255,255,0.04)] p-4">
-        <strong>현재 동기화 상태</strong>
+        <strong>{{ t('home.settings.syncStatusTitle') }}</strong>
         <p class="muted-copy">
-          {{ syncStatus?.isReady ? '준비됨' : '동기화 필요' }}
+          {{ syncStatus?.isReady ? t('home.settings.syncReady') : t('home.settings.syncNeeded') }}
         </p>
         <button type="button" class="action-btn" @click="handleSettingsSync">
-          동기화 실행
+          {{ t('home.settings.syncAction') }}
         </button>
       </div>
 
       <button type="button" class="action-btn" @click="notifySettingsPending">
-        추가 설정은 준비 중
+        {{ t('home.settings.morePending') }}
       </button>
     </div>
   </el-drawer>

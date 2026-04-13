@@ -4,28 +4,31 @@ use serde::de::DeserializeOwned;
 use tauri::AppHandle;
 use std::collections::HashMap;
 
-use crate::cache::{load_snapshot, load_statuses, load_terms, save_snapshot, save_terms};
+use crate::cache::{
+    load_snapshot, load_statuses, load_summary_snapshot, load_terms, save_snapshot, save_terms,
+};
 use crate::cache_model::{
-    CachedBlackboardEntry, CachedModuleBattlePart, CachedModuleBattlePhase, CachedModuleCost,
-    CachedModuleTalentCandidate, CachedModuleTraitCandidate, CachedOperator,
+    CachedBlackboardEntry, CachedBuildingCost, CachedBuildingRequireRoom, CachedItemBuildingProduct, CachedItemStageDrop, CachedManufactFormula, CachedModuleBattlePart, CachedModuleBattlePhase, CachedModuleCost,
+    CachedModuleTalentCandidate, CachedModuleTraitCandidate, CachedItem, CachedOperator,
     CachedOperatorModule, CachedOperatorPotential, CachedOperatorRange, CachedOperatorRangeGrid,
     CachedOperatorSkill, CachedOperatorSkillLevel, CachedOperatorStatPoint,
     CachedOperatorStatProgression, CachedOperatorTalent, CachedOperatorTrait,
+    CachedOperatorSummary, CachedWorkshopExtraOutcome, CachedWorkshopFormula,
 };
 use crate::canonical::{
-    ModuleCostDto, OperatorBlackboardEntryDto, OperatorDetailDto, OperatorModuleBattlePartDto,
+    BuildingCostDto, BuildingFormulaBundleDto, BuildingRequireRoomDto, ItemBuildingProductDto, ItemDto, ItemStageDropDto, ManufactFormulaDto, ModuleCostDto, OperatorBlackboardEntryDto, OperatorDetailDto, OperatorModuleBattlePartDto,
     OperatorModuleBattlePhaseDto, OperatorModuleDto, OperatorModuleTalentCandidateDto,
     OperatorModuleTraitCandidateDto, OperatorPotentialDto, OperatorRangeDto,
     OperatorRangeGridDto, OperatorSkillDto, OperatorSkillLevelDto, OperatorStatPointDto,
     OperatorStatProgressionDto, OperatorSummaryDto, OperatorTalentDto, OperatorTraitDto,
-    RegionSyncStatus, SyncResult,
+    RegionSyncStatus, SyncResult, WorkshopExtraOutcomeDto, WorkshopFormulaDto,
 };
 use crate::data_sources::RegionCode;
 use crate::errors::AppError;
-use crate::normalizers::normalize_operators;
+use crate::normalizers::{normalize_building_data, normalize_items, normalize_operators};
 use crate::raw_models::{
     into_power_names, RawBattleEquipTable, RawCharacterTable, RawFavorTable, RawGameDataConst,
-    RawHandbookTeamTable, RawItemTable, RawRangeTable, RawSkillTable, RawUniequipTable,
+    RawBuildingData, RawHandbookTeamTable, RawItemTable, RawRangeTable, RawSkillTable, RawUniequipTable,
 };
 use crate::user_store;
 
@@ -42,6 +45,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
     let handbook_team_url = descriptor.raw_url(descriptor.handbook_team_path);
     let range_table_url = descriptor.raw_url(descriptor.range_table_path);
     let item_table_url = descriptor.raw_url(descriptor.item_table_path);
+    let building_data_url = descriptor.raw_url(descriptor.building_data_path);
     let battle_equip_table_url = descriptor.raw_url(descriptor.battle_equip_table_path);
     let favor_table_url = descriptor.raw_url(descriptor.favor_table_path);
 
@@ -52,6 +56,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
     let handbook_team_payload = fetch_json(&client, &handbook_team_url).await?;
     let range_table_payload = fetch_json(&client, &range_table_url).await?;
     let item_table_payload = fetch_json(&client, &item_table_url).await?;
+    let building_data_payload = fetch_json(&client, &building_data_url).await?;
     let battle_equip_table_payload = fetch_json(&client, &battle_equip_table_url).await?;
     let favor_table_payload = fetch_json(&client, &favor_table_url).await?;
 
@@ -82,6 +87,10 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
     let item_table = parse_json_with_path::<RawItemTable>(
         &item_table_payload.body,
         &format!("{} item_table.json", region.as_str()),
+    )?;
+    let building_data = parse_json_with_path::<RawBuildingData>(
+        &building_data_payload.body,
+        &format!("{} building_data.json", region.as_str()),
     )?;
     let battle_equip_table = parse_json_with_path::<RawBattleEquipTable>(
         &battle_equip_table_payload.body,
@@ -115,6 +124,8 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         &sub_prof_names,
         &power_names,
     );
+    let items = normalize_items(item_table.items);
+    let (manufact_formulas, workshop_formulas) = normalize_building_data(building_data);
     let fetched_at = Utc::now().to_rfc3339();
     let source_revision = [
         character_payload.revision.as_deref(),
@@ -123,6 +134,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         handbook_team_payload.revision.as_deref(),
         range_table_payload.revision.as_deref(),
         item_table_payload.revision.as_deref(),
+        building_data_payload.revision.as_deref(),
         battle_equip_table_payload.revision.as_deref(),
         favor_table_payload.revision.as_deref(),
     ]
@@ -136,7 +148,16 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         source_revision
     };
 
-    save_snapshot(app, region, &source_revision, &fetched_at, &operators)?;
+    save_snapshot(
+        app,
+        region,
+        &source_revision,
+        &fetched_at,
+        &items,
+        &manufact_formulas,
+        &workshop_formulas,
+        &operators,
+    )?;
     save_terms(app, region, &gamedata_const.into_term_descriptions())?;
 
     Ok(SyncResult {
@@ -148,6 +169,51 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
     })
 }
 
+pub fn list_items(
+    app: &AppHandle,
+    region: RegionCode,
+    classify_type: Option<&str>,
+) -> Result<Vec<ItemDto>, AppError> {
+    let snapshot = load_snapshot(app, region)?;
+    let normalized_classify_type = classify_type.map(|value| value.trim().to_lowercase());
+
+    Ok(snapshot
+        .items
+        .into_iter()
+        .filter(|item| {
+            if item.item_id.contains("p_char") || item.item_id.contains("voucher") {
+                return false;
+            }
+
+            normalized_classify_type
+                .as_ref()
+                .map(|value| item.classify_type.to_lowercase() == *value)
+                .unwrap_or(true)
+        })
+        .map(cached_item_to_dto)
+        .collect())
+}
+
+pub fn list_building_formulas(
+    app: &AppHandle,
+    region: RegionCode,
+) -> Result<BuildingFormulaBundleDto, AppError> {
+    let snapshot = load_snapshot(app, region)?;
+
+    Ok(BuildingFormulaBundleDto {
+        manufact_formulas: snapshot
+            .manufact_formulas
+            .into_iter()
+            .map(cached_manufact_formula_to_dto)
+            .collect(),
+        workshop_formulas: snapshot
+            .workshop_formulas
+            .into_iter()
+            .map(cached_workshop_formula_to_dto)
+            .collect(),
+    })
+}
+
 pub fn list_operators(
     app: &AppHandle,
     region: RegionCode,
@@ -155,7 +221,7 @@ pub fn list_operators(
     rarity: Option<u8>,
     profession: Option<&str>,
 ) -> Result<Vec<OperatorSummaryDto>, AppError> {
-    let snapshot = load_snapshot(app, region)?;
+    let snapshot = load_summary_snapshot(app, region)?;
     let normalized_query = query.unwrap_or("").trim().to_lowercase();
     let normalized_profession = profession.map(|value| value.trim().to_lowercase());
 
@@ -166,7 +232,6 @@ pub fn list_operators(
             let matches_query = normalized_query.is_empty()
                 || [
                     operator.name.as_str(),
-                    operator.codename.as_str(),
                     operator.profession.as_str(),
                     operator.branch.as_str(),
                 ]
@@ -189,7 +254,7 @@ pub fn list_operators(
 
             (matches_query || matches_affiliation) && matches_rarity && matches_profession
         })
-        .map(cached_to_summary)
+        .map(cached_summary_to_dto)
         .collect())
 }
 
@@ -261,7 +326,7 @@ where
     })
 }
 
-fn cached_to_summary(operator: &CachedOperator) -> OperatorSummaryDto {
+fn cached_summary_to_dto(operator: &CachedOperatorSummary) -> OperatorSummaryDto {
     OperatorSummaryDto {
         id: operator.id.clone(),
         name: operator.name.clone(),
@@ -479,6 +544,7 @@ fn cached_stat_point_to_dto(point: CachedOperatorStatPoint) -> OperatorStatPoint
 fn cached_skill_to_dto(skill: CachedOperatorSkill) -> OperatorSkillDto {
     OperatorSkillDto {
         id: skill.id,
+        icon_id: skill.icon_id,
         name: skill.name,
         recovery_type: skill.recovery_type,
         activation_type: skill.activation_type,
@@ -506,6 +572,113 @@ fn cached_skill_level_to_dto(level: CachedOperatorSkillLevel) -> OperatorSkillLe
             .map(cached_blackboard_to_dto)
             .collect(),
         range: level.range.map(cached_range_to_dto),
+    }
+}
+
+fn cached_item_to_dto(item: CachedItem) -> ItemDto {
+    ItemDto {
+        item_id: item.item_id,
+        name: item.name,
+        description: item.description,
+        rarity: item.rarity,
+        icon_id: item.icon_id,
+        sort_id: item.sort_id,
+        usage: item.usage,
+        obtain_approach: item.obtain_approach,
+        classify_type: item.classify_type,
+        item_type: item.item_type,
+        stage_drop_list: item
+            .stage_drop_list
+            .into_iter()
+            .map(cached_item_stage_drop_to_dto)
+            .collect(),
+        building_product_list: item
+            .building_product_list
+            .into_iter()
+            .map(cached_item_building_product_to_dto)
+            .collect(),
+    }
+}
+
+fn cached_item_stage_drop_to_dto(entry: CachedItemStageDrop) -> ItemStageDropDto {
+    ItemStageDropDto {
+        stage_id: entry.stage_id,
+        occ_per: entry.occ_per,
+    }
+}
+
+fn cached_item_building_product_to_dto(entry: CachedItemBuildingProduct) -> ItemBuildingProductDto {
+    ItemBuildingProductDto {
+        room_type: entry.room_type,
+        formula_id: entry.formula_id,
+    }
+}
+
+fn cached_manufact_formula_to_dto(entry: CachedManufactFormula) -> ManufactFormulaDto {
+    ManufactFormulaDto {
+        formula_id: entry.formula_id,
+        item_id: entry.item_id,
+        count: entry.count,
+        weight: entry.weight,
+        cost_point: entry.cost_point,
+        formula_type: entry.formula_type,
+        buff_type: entry.buff_type,
+        costs: entry.costs.into_iter().map(cached_building_cost_to_dto).collect(),
+        require_rooms: entry
+            .require_rooms
+            .into_iter()
+            .map(cached_building_require_room_to_dto)
+            .collect(),
+    }
+}
+
+fn cached_workshop_formula_to_dto(entry: CachedWorkshopFormula) -> WorkshopFormulaDto {
+    WorkshopFormulaDto {
+        sort_id: entry.sort_id,
+        formula_id: entry.formula_id,
+        rarity: entry.rarity,
+        item_id: entry.item_id,
+        count: entry.count,
+        gold_cost: entry.gold_cost,
+        ap_cost: entry.ap_cost,
+        formula_type: entry.formula_type,
+        buff_type: entry.buff_type,
+        extra_outcome_rate: entry.extra_outcome_rate,
+        extra_outcome_group: entry
+            .extra_outcome_group
+            .into_iter()
+            .map(cached_workshop_extra_outcome_to_dto)
+            .collect(),
+        costs: entry.costs.into_iter().map(cached_building_cost_to_dto).collect(),
+        require_rooms: entry
+            .require_rooms
+            .into_iter()
+            .map(cached_building_require_room_to_dto)
+            .collect(),
+    }
+}
+
+fn cached_building_cost_to_dto(entry: CachedBuildingCost) -> BuildingCostDto {
+    BuildingCostDto {
+        id: entry.id,
+        count: entry.count,
+        cost_type: entry.cost_type,
+    }
+}
+
+fn cached_building_require_room_to_dto(entry: CachedBuildingRequireRoom) -> BuildingRequireRoomDto {
+    BuildingRequireRoomDto {
+        room_id: entry.room_id,
+        room_level: entry.room_level,
+        room_count: entry.room_count,
+    }
+}
+
+fn cached_workshop_extra_outcome_to_dto(entry: CachedWorkshopExtraOutcome) -> WorkshopExtraOutcomeDto {
+    WorkshopExtraOutcomeDto {
+        weight: entry.weight,
+        item_id: entry.item_id,
+        item_count: entry.item_count,
     }
 }
 

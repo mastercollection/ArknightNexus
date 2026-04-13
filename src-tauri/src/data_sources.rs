@@ -62,6 +62,9 @@ impl RegionCode {
             item_table_path: Box::leak(
                 format!("{region}/gamedata/excel/item_table.json").into_boxed_str(),
             ),
+            building_data_path: Box::leak(
+                format!("{region}/gamedata/excel/building_data.json").into_boxed_str(),
+            ),
             battle_equip_table_path: Box::leak(
                 format!("{region}/gamedata/excel/battle_equip_table.json").into_boxed_str(),
             ),
@@ -83,6 +86,7 @@ pub struct SourceDescriptor {
     pub handbook_team_path: &'static str,
     pub range_table_path: &'static str,
     pub item_table_path: &'static str,
+    pub building_data_path: &'static str,
     pub battle_equip_table_path: &'static str,
     pub favor_table_path: &'static str,
 }

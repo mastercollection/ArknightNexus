@@ -83,6 +83,8 @@ pub struct OperatorRangeGridDto {
 #[serde(rename_all = "camelCase")]
 pub struct OperatorSkillDto {
     pub id: String,
+    #[serde(default)]
+    pub icon_id: Option<String>,
     pub name: String,
     pub recovery_type: String,
     pub activation_type: String,
@@ -92,6 +94,110 @@ pub struct OperatorSkillDto {
     #[serde(default)]
     pub unlock_level: u32,
     pub levels: Vec<OperatorSkillLevelDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ItemStageDropDto {
+    pub stage_id: String,
+    pub occ_per: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ItemBuildingProductDto {
+    pub room_type: String,
+    pub formula_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BuildingCostDto {
+    pub id: String,
+    pub count: f64,
+    #[serde(rename = "type")]
+    pub cost_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BuildingRequireRoomDto {
+    pub room_id: String,
+    pub room_level: i64,
+    pub room_count: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkshopExtraOutcomeDto {
+    pub weight: i64,
+    pub item_id: String,
+    pub item_count: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ManufactFormulaDto {
+    pub formula_id: String,
+    pub item_id: String,
+    pub count: i64,
+    pub weight: i64,
+    pub cost_point: i64,
+    pub formula_type: String,
+    pub buff_type: String,
+    #[serde(default)]
+    pub costs: Vec<BuildingCostDto>,
+    #[serde(default)]
+    pub require_rooms: Vec<BuildingRequireRoomDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkshopFormulaDto {
+    pub sort_id: i64,
+    pub formula_id: String,
+    pub rarity: i64,
+    pub item_id: String,
+    pub count: i64,
+    pub gold_cost: i64,
+    pub ap_cost: i64,
+    pub formula_type: String,
+    pub buff_type: String,
+    pub extra_outcome_rate: f64,
+    #[serde(default)]
+    pub extra_outcome_group: Vec<WorkshopExtraOutcomeDto>,
+    #[serde(default)]
+    pub costs: Vec<BuildingCostDto>,
+    #[serde(default)]
+    pub require_rooms: Vec<BuildingRequireRoomDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BuildingFormulaBundleDto {
+    #[serde(default)]
+    pub manufact_formulas: Vec<ManufactFormulaDto>,
+    #[serde(default)]
+    pub workshop_formulas: Vec<WorkshopFormulaDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ItemDto {
+    pub item_id: String,
+    pub name: String,
+    pub description: String,
+    pub rarity: String,
+    pub icon_id: String,
+    pub sort_id: i64,
+    pub usage: String,
+    pub obtain_approach: String,
+    pub classify_type: String,
+    pub item_type: String,
+    #[serde(default)]
+    pub stage_drop_list: Vec<ItemStageDropDto>,
+    #[serde(default)]
+    pub building_product_list: Vec<ItemBuildingProductDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

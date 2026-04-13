@@ -10,6 +10,92 @@ export interface OperatorSummary {
   thumbnailHue: number
 }
 
+export interface ItemEntry {
+  itemId: string
+  name: string
+  description: string
+  rarity: string
+  iconId: string
+  sortId: number
+  usage: string
+  obtainApproach: string
+  classifyType: string
+  itemType: string
+  stageDropList: ItemStageDrop[]
+  buildingProductList: ItemBuildingProduct[]
+}
+
+export interface ItemStageDrop {
+  stageId: string
+  occPer: string
+}
+
+export interface ItemBuildingProduct {
+  roomType: string
+  formulaId: string
+}
+
+export interface BuildingCostEntry {
+  id: string
+  count: number
+  type: string
+}
+
+export interface BuildingRequireRoomEntry {
+  roomId: string
+  roomLevel: number
+  roomCount: number
+}
+
+export interface WorkshopExtraOutcomeEntry {
+  weight: number
+  itemId: string
+  itemCount: number
+}
+
+export interface ManufactFormulaEntry {
+  formulaId: string
+  itemId: string
+  count: number
+  weight: number
+  costPoint: number
+  formulaType: string
+  buffType: string
+  costs: BuildingCostEntry[]
+  requireRooms: BuildingRequireRoomEntry[]
+}
+
+export interface WorkshopFormulaEntry {
+  sortId: number
+  formulaId: string
+  rarity: number
+  itemId: string
+  count: number
+  goldCost: number
+  apCost: number
+  formulaType: string
+  buffType: string
+  extraOutcomeRate: number
+  extraOutcomeGroup: WorkshopExtraOutcomeEntry[]
+  costs: BuildingCostEntry[]
+  requireRooms: BuildingRequireRoomEntry[]
+}
+
+export interface BuildingFormulaBundle {
+  manufactFormulas: ManufactFormulaEntry[]
+  workshopFormulas: WorkshopFormulaEntry[]
+}
+
+export interface PenguinMatrixEntry {
+  stageId: string
+  itemId: string
+  quantity: number
+  times: number
+  start?: string | null
+  end?: string | null
+  dropRate: number
+}
+
 export interface OperatorStatPoint {
   hp: number
   attack: number
@@ -37,6 +123,7 @@ export interface OperatorBlackboardEntry {
 
 export interface OperatorSkill {
   id: string
+  iconId?: string | null
   name: string
   recoveryType: string
   activationType: string

@@ -107,7 +107,7 @@ const router = useRouter()
 const { t } = useI18n()
 const { region } = useRegionPreference()
 
-const routeParams = route.params as { id?: string }
+const routeParams = route.params as { operatorId?: string }
 const operator = ref<OperatorDetail>()
 const isLoading = ref(true)
 const errorMessage = ref('')
@@ -293,7 +293,7 @@ onBeforeUnmount(() => {
 })
 
 async function loadOperator() {
-  const operatorId = String(routeParams.id ?? '')
+  const operatorId = String(routeParams.operatorId ?? '')
   isLoading.value = true
   errorMessage.value = ''
 
@@ -330,7 +330,7 @@ async function loadOperator() {
 }
 
 watch(
-  () => [routeParams.id, region.value],
+  () => [routeParams.operatorId, region.value],
   () => {
     loadOperator()
   },
@@ -782,7 +782,7 @@ async function loadSkillIconSources(skills: OperatorDetail['skills']) {
   skillIconSources.value = {}
 
   const requests = skills
-    .map(skill => skill.id.trim())
+    .map(skill => (skill.iconId ?? skill.id).trim())
     .filter(Boolean)
     .map(id => ({
       kind: 'skillIcon' as const,
@@ -798,7 +798,7 @@ async function loadSkillIconSources(skills: OperatorDetail['skills']) {
 
   const entries = await Promise.all(
     skills.map(async (skill) => {
-      const skillId = skill.id.trim()
+      const skillId = (skill.iconId ?? skill.id).trim()
       if (!skillId)
         return [skill.id, undefined] as const
 
