@@ -9,7 +9,13 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useRegionPreference } from '~/composables'
-import { getItemById, getPenguinItemMatrix, listBuildingFormulas, listItems } from '~/services/operators'
+import {
+  getItemById,
+  getPenguinItemMatrix,
+  getRegionStageCodes,
+  listBuildingFormulas,
+  listItems,
+} from '~/services/operators'
 
 const route = useRoute()
 const router = useRouter()
@@ -30,6 +36,7 @@ const buildingFormulaBundle = ref<BuildingFormulaBundle>({
 })
 const buildingFormulaErrorMessage = ref('')
 const allItems = ref<ItemEntry[]>([])
+const stageCodeMap = ref<Record<string, string>>({})
 const penguinServer = ref<'CN' | 'US' | 'JP' | 'KR'>('CN')
 const penguinSortKey = ref<'dropRate' | 'sampleCount'>('dropRate')
 const penguinServerOptions = [
@@ -51,6 +58,11 @@ const sortedPenguinDrops = computed(() => {
 
   return entries.sort((left, right) => right.dropRate - left.dropRate || right.times - left.times || left.stageId.localeCompare(right.stageId))
 })
+
+function getStageLabel(stageId: string) {
+  const normalizedStageId = stageId.replace(/_perm$/i, '')
+  return stageCodeMap.value[stageId] || stageCodeMap.value[normalizedStageId] || stageId
+}
 
 const linkedBuildingFormulas = computed(() => {
   if (!item.value)
@@ -109,10 +121,12 @@ async function loadItem() {
   }
   buildingFormulaErrorMessage.value = ''
   allItems.value = []
+  stageCodeMap.value = {}
 
   try {
     item.value = await getItemById(itemId, region.value)
     if (item.value) {
+      stageCodeMap.value = await getRegionStageCodes(region.value)
       allItems.value = await listItems(region.value)
       try {
         buildingFormulaBundle.value = await listBuildingFormulas(region.value)
@@ -263,7 +277,7 @@ export default {
         </section>
       </section>
 
-      <section class="grid gap-3 panel-soft rounded-panel px-4 py-4.5">
+      <section class="grid gap-3">
         <div class="flex items-center justify-between gap-3">
           <h3 class="m-0 text-[0.98rem] text-white font-700 tracking-[-0.02em]">
             {{ t('itemsDetail.sections.penguinDrops') }}
@@ -321,9 +335,9 @@ export default {
           <article
             v-for="entry in sortedPenguinDrops"
             :key="`${entry.stageId}:${entry.start || 'none'}:${entry.end || 'none'}`"
-            class="grid gap-2 panel-soft rounded-panel p-4"
+            class="grid gap-2 rounded-[14px] bg-[rgba(255,255,255,0.035)] p-4"
           >
-            <strong class="text-[0.96rem] text-white font-600">{{ entry.stageId }}</strong>
+            <strong class="text-[0.96rem] text-white font-600">{{ getStageLabel(entry.stageId) }}</strong>
             <div class="flex flex-wrap gap-2">
               <span class="chip">
                 {{ t('itemsDetail.labels.dropRate') }} {{ (entry.dropRate * 100).toFixed(2) }}%

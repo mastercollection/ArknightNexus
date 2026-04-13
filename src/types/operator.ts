@@ -27,6 +27,7 @@ export interface ItemEntry {
 
 export interface ItemStageDrop {
   stageId: string
+  stageCode?: string | null
   occPer: string
 }
 

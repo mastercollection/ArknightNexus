@@ -62,7 +62,10 @@ pub fn normalize_operators(
     operators
 }
 
-pub fn normalize_items(items: HashMap<String, RawItemEntry>) -> Vec<CachedItem> {
+pub fn normalize_items(
+    items: HashMap<String, RawItemEntry>,
+    stage_codes_by_id: &HashMap<String, String>,
+) -> Vec<CachedItem> {
     let mut normalized = items
         .into_values()
         .map(|item| CachedItem {
@@ -80,6 +83,7 @@ pub fn normalize_items(items: HashMap<String, RawItemEntry>) -> Vec<CachedItem> 
                 .stage_drop_list
                 .into_iter()
                 .map(|entry| CachedItemStageDrop {
+                    stage_code: stage_codes_by_id.get(&entry.stage_id).cloned(),
                     stage_id: entry.stage_id,
                     occ_per: entry.occ_per,
                 })

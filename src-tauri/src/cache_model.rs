@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 24;
+pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 25;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -240,6 +241,8 @@ pub struct CachedOperatorSkill {
 #[serde(rename_all = "camelCase")]
 pub struct CachedItemStageDrop {
     pub stage_id: String,
+    #[serde(default)]
+    pub stage_code: Option<String>,
     pub occ_per: String,
 }
 
@@ -385,6 +388,8 @@ pub struct RegionSnapshot {
     pub region: String,
     pub source_revision: String,
     pub fetched_at: String,
+    #[serde(default)]
+    pub stage_codes: HashMap<String, String>,
     #[serde(default)]
     pub items: Vec<CachedItem>,
     #[serde(default)]

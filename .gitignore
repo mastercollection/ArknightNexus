@@ -13,7 +13,7 @@ dist
 dist-ssr
 coverage
 *.local
-gen
+src-tauri/gen/*
 
 /cypress/videos/
 /cypress/screenshots/
@@ -29,3 +29,9 @@ gen
 *.sw?
 
 *.tsbuildinfo
+
+# Local agent/worktree artifacts
+AGENTS.md
+_tmp_*
+target-codex/
+src-tauri/target-codex*/

@@ -34,6 +34,7 @@ use crate::normalizers::{normalize_building_data, normalize_items, normalize_ope
 use crate::raw_models::{
     into_power_names, RawBattleEquipTable, RawBuildingData, RawCharacterTable, RawFavorTable,
     RawGameDataConst, RawHandbookTeamTable, RawItemTable, RawRangeTable, RawSkillTable,
+    RawStageTable,
     RawUniequipTable,
 };
 use crate::user_store;
@@ -51,6 +52,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
     let handbook_team_url = descriptor.raw_url(descriptor.handbook_team_path);
     let range_table_url = descriptor.raw_url(descriptor.range_table_path);
     let item_table_url = descriptor.raw_url(descriptor.item_table_path);
+    let stage_table_url = descriptor.raw_url(descriptor.stage_table_path);
     let building_data_url = descriptor.raw_url(descriptor.building_data_path);
     let battle_equip_table_url = descriptor.raw_url(descriptor.battle_equip_table_path);
     let favor_table_url = descriptor.raw_url(descriptor.favor_table_path);
@@ -62,6 +64,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
     let handbook_team_payload = fetch_json(&client, &handbook_team_url).await?;
     let range_table_payload = fetch_json(&client, &range_table_url).await?;
     let item_table_payload = fetch_json(&client, &item_table_url).await?;
+    let stage_table_payload = fetch_json(&client, &stage_table_url).await?;
     let building_data_payload = fetch_json(&client, &building_data_url).await?;
     let battle_equip_table_payload = fetch_json(&client, &battle_equip_table_url).await?;
     let favor_table_payload = fetch_json(&client, &favor_table_url).await?;
@@ -93,6 +96,10 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
     let item_table = parse_json_with_path::<RawItemTable>(
         &item_table_payload.body,
         &format!("{} item_table.json", region.as_str()),
+    )?;
+    let stage_table = parse_json_with_path::<RawStageTable>(
+        &stage_table_payload.body,
+        &format!("{} stage_table.json", region.as_str()),
     )?;
     let building_data = parse_json_with_path::<RawBuildingData>(
         &building_data_payload.body,
@@ -131,7 +138,21 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         &sub_prof_names,
         &power_names,
     );
-    let items = normalize_items(item_table.items);
+    let stage_codes_by_id = stage_table
+        .stages
+        .into_values()
+        .filter_map(|stage| {
+            let stage_id = stage.stage_id.trim();
+            let code = stage.code.trim();
+
+            if stage_id.is_empty() || code.is_empty() {
+                None
+            } else {
+                Some((stage_id.to_string(), code.to_string()))
+            }
+        })
+        .collect::<HashMap<_, _>>();
+    let items = normalize_items(item_table.items, &stage_codes_by_id);
     let (manufact_formulas, workshop_formulas) = normalize_building_data(building_data);
     let fetched_at = Utc::now().to_rfc3339();
     let source_revision = [
@@ -141,6 +162,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         handbook_team_payload.revision.as_deref(),
         range_table_payload.revision.as_deref(),
         item_table_payload.revision.as_deref(),
+        stage_table_payload.revision.as_deref(),
         building_data_payload.revision.as_deref(),
         battle_equip_table_payload.revision.as_deref(),
         favor_table_payload.revision.as_deref(),
@@ -160,6 +182,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         region,
         &source_revision,
         &fetched_at,
+        &stage_codes_by_id,
         &items,
         &manufact_formulas,
         &workshop_formulas,
@@ -287,6 +310,14 @@ pub fn get_region_terms(
     region: RegionCode,
 ) -> Result<HashMap<String, String>, AppError> {
     load_terms(app, region)
+}
+
+pub fn get_region_stage_codes(
+    app: &AppHandle,
+    region: RegionCode,
+) -> Result<HashMap<String, String>, AppError> {
+    let snapshot = load_snapshot(app, region)?;
+    Ok(snapshot.stage_codes)
 }
 
 pub fn get_user_favorites(app: &AppHandle) -> Result<Vec<String>, AppError> {
@@ -707,6 +738,7 @@ fn cached_item_to_dto(item: CachedItem) -> ItemDto {
 fn cached_item_stage_drop_to_dto(entry: CachedItemStageDrop) -> ItemStageDropDto {
     ItemStageDropDto {
         stage_id: entry.stage_id,
+        stage_code: entry.stage_code,
         occ_per: entry.occ_per,
     }
 }

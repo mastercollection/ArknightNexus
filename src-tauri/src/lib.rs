@@ -44,6 +44,7 @@ pub fn run() {
             commands::get_operator_detail,
             commands::get_region_sync_status,
             commands::get_region_terms,
+            commands::get_region_stage_codes,
             commands::get_user_favorites,
             commands::toggle_operator_favorite,
             commands::get_user_plan,

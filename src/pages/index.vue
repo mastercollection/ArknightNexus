@@ -37,18 +37,12 @@ const menuItems = computed(() => [
     action: () => router.push('/operators'),
   },
   {
-    title: 'Enemies',
-    caption: t('home.menu.enemies.caption'),
-    status: t('home.menu.status.pending'),
-    enabled: false,
-    icon: new URL('../assets/icons/home/enemy.webp', import.meta.url).href,
-  },
-  {
-    title: 'Operations',
-    caption: t('home.menu.operations.caption'),
-    status: t('home.menu.status.pending'),
-    enabled: false,
-    icon: new URL('../assets/icons/home/operations.webp', import.meta.url).href,
+    title: 'Plan',
+    caption: t('home.menu.plan.caption'),
+    status: t('home.menu.status.active'),
+    enabled: true,
+    icon: new URL('../assets/icons/home/prts.png', import.meta.url).href,
+    action: () => router.push('/plan'),
   },
   {
     title: 'Items',
@@ -59,12 +53,11 @@ const menuItems = computed(() => [
     action: () => router.push('/items'),
   },
   {
-    title: 'Plan',
-    caption: t('home.menu.plan.caption'),
-    status: t('home.menu.status.active'),
-    enabled: true,
-    icon: new URL('../assets/icons/home/prts.png', import.meta.url).href,
-    action: () => router.push('/plan'),
+    title: 'Enemies',
+    caption: t('home.menu.enemies.caption'),
+    status: t('home.menu.status.pending'),
+    enabled: false,
+    icon: new URL('../assets/icons/home/enemy.webp', import.meta.url).href,
   },
 ])
 
@@ -87,12 +80,10 @@ async function loadHome() {
     ])
 
     featuredOperators.value = featured
-    syncStatus.value = statuses.find(status => status.region === region.value) ?? null
-  }
-  catch (error) {
+    syncStatus.value = statuses.find((status) => status.region === region.value) ?? null
+  } catch (error) {
     errorMessage.value = String(error)
-  }
-  finally {
+  } finally {
     isLoading.value = false
   }
 }
@@ -104,8 +95,7 @@ async function forceSync() {
   try {
     await syncRegionData(region.value)
     await loadHome()
-  }
-  catch (error) {
+  } catch (error) {
     errorMessage.value = String(error)
     isLoading.value = false
   }
@@ -141,13 +131,10 @@ async function handleExportUserData() {
 
   try {
     const exported = await exportUserDataFile()
-    if (exported)
-      ElMessage.success(t('home.messages.userDataExported'))
-  }
-  catch (error) {
+    if (exported) ElMessage.success(t('home.messages.userDataExported'))
+  } catch (error) {
     ElMessage.error(String(error))
-  }
-  finally {
+  } finally {
     userDataBusy.value = false
   }
 }
@@ -163,8 +150,7 @@ async function handleImportUserData() {
         type: 'warning',
       },
     )
-  }
-  catch {
+  } catch {
     return
   }
 
@@ -172,13 +158,10 @@ async function handleImportUserData() {
 
   try {
     const imported = await importUserDataFile()
-    if (imported)
-      ElMessage.success(t('home.messages.userDataImported'))
-  }
-  catch (error) {
+    if (imported) ElMessage.success(t('home.messages.userDataImported'))
+  } catch (error) {
     ElMessage.error(String(error))
-  }
-  finally {
+  } finally {
     userDataBusy.value = false
   }
 }
@@ -199,7 +182,7 @@ export default {
           class="inline-flex items-center gap-2.5 border-0 bg-transparent p-0 text-white"
           @click="router.push('/')"
         >
-          <img :src="appIcon" alt="" class="h-7 w-7 shrink-0 rounded-[8px]">
+          <img :src="appIcon" alt="" class="h-7 w-7 shrink-0 rounded-[8px]" />
           <strong>Arknights Nexus</strong>
         </button>
       </template>
@@ -272,9 +255,7 @@ export default {
   <el-drawer v-model="settingsOpen" direction="rtl" size="min(88vw, 24rem)" :with-header="false">
     <div class="grid gap-4 p-4">
       <div class="grid gap-1">
-        <p class="eyebrow m-0">
-          App Controls
-        </p>
+        <p class="eyebrow m-0">App Controls</p>
         <h2 class="m-0 text-[1.2rem] font-700">
           {{ t('home.settings.title') }}
         </h2>
@@ -287,7 +268,7 @@ export default {
           <span
             class="h-8 w-8 inline-flex flex-none items-center justify-center rounded-full bg-[rgba(109,169,255,0.12)] text-[rgba(214,229,255,0.86)]"
           >
-            <img :src="globeIcon" alt="" class="h-[18px] w-[18px] opacity-92">
+            <img :src="globeIcon" alt="" class="h-[18px] w-[18px] opacity-92" />
           </span>
           <el-select
             :model-value="region"

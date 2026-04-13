@@ -8,6 +8,7 @@ mod gamedata_const;
 mod handbook_team;
 mod item_table;
 mod range_table;
+mod stage_table;
 mod skill;
 mod uniequip;
 
@@ -22,6 +23,7 @@ pub use gamedata_const::*;
 pub use handbook_team::*;
 pub use item_table::*;
 pub use range_table::*;
+pub use stage_table::*;
 pub use skill::*;
 pub use uniequip::*;
 

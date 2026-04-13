@@ -54,6 +54,7 @@ function toSummary(operator: OperatorDetail): OperatorSummary {
 
 const regionReadyCache = new Set<RegionCode>()
 const regionTermsCache = new Map<RegionCode, RegionTerms>()
+const regionStageCodeCache = new Map<RegionCode, Record<string, string>>()
 const resolvedImageSourceCache = new Map<string, ResolvedImageSource>()
 const penguinMatrixCache = new Map<string, PenguinMatrixEntry[]>()
 const IMAGE_REMOTE_BASE_URL
@@ -330,6 +331,41 @@ export async function getRegionTerms(region: RegionCode = DEFAULT_REGION): Promi
 
   regionTermsCache.set(region, terms)
   return terms
+}
+
+export async function getRegionStageCodes(
+  region: RegionCode = DEFAULT_REGION,
+): Promise<Record<string, string>> {
+  setI18nLocale(region)
+  if (!canUseTauri())
+    return {}
+
+  if (regionStageCodeCache.has(region))
+    return regionStageCodeCache.get(region) ?? {}
+
+  let stageCodes: Record<string, string>
+  try {
+    await ensureRegionReady(region)
+    stageCodes = await invoke<Record<string, string>>('get_region_stage_codes', {
+      request: {
+        region,
+      },
+    })
+  }
+  catch (error) {
+    if (!String(error).includes('동기화된 데이터'))
+      throw error
+
+    await syncRegionData(region)
+    stageCodes = await invoke<Record<string, string>>('get_region_stage_codes', {
+      request: {
+        region,
+      },
+    })
+  }
+
+  regionStageCodeCache.set(region, stageCodes)
+  return stageCodes
 }
 
 export async function getUserFavorites(): Promise<string[]> {

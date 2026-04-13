@@ -141,6 +141,15 @@ pub fn get_region_terms(
 }
 
 #[tauri::command]
+pub fn get_region_stage_codes(
+    app: AppHandle,
+    request: SyncRegionRequest,
+) -> Result<HashMap<String, String>, String> {
+    let region = parse_region(&request.region)?;
+    service::get_region_stage_codes(&app, region).map_err(map_error)
+}
+
+#[tauri::command]
 pub fn get_user_favorites(app: AppHandle) -> Result<Vec<String>, String> {
     service::get_user_favorites(&app).map_err(map_error)
 }

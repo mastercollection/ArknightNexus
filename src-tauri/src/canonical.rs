@@ -123,6 +123,8 @@ pub struct OperatorSkillDto {
 #[serde(rename_all = "camelCase")]
 pub struct ItemStageDropDto {
     pub stage_id: String,
+    #[serde(default)]
+    pub stage_code: Option<String>,
     pub occ_per: String,
 }
 
