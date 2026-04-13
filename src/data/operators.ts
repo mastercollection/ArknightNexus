@@ -45,6 +45,9 @@ export const operators: OperatorDetail[] = [
     modules: [],
     archetypeDescription: '단일 대상에게 안정적으로 Arts 피해를 누적하는 정통 캐스터.',
     eliteCaps: [50, 80, 90],
+    eliteExpCosts: [],
+    eliteUpgradeGoldCosts: [],
+    eliteEvolveGoldCosts: [],
     stats: [
       {
         level: 1,
@@ -125,6 +128,9 @@ export const operators: OperatorDetail[] = [
     modules: [],
     archetypeDescription: '근거리와 원거리를 겸하며, 폭발적인 광역 화력을 가진 로드 가드.',
     eliteCaps: [50, 80, 90],
+    eliteExpCosts: [],
+    eliteUpgradeGoldCosts: [],
+    eliteEvolveGoldCosts: [],
     stats: [
       {
         level: 1,
@@ -205,6 +211,9 @@ export const operators: OperatorDetail[] = [
     modules: [],
     archetypeDescription: '낮은 방어 적과 공중 적을 빠르게 정리하는 대표적인 고속 저격수.',
     eliteCaps: [50, 80, 90],
+    eliteExpCosts: [],
+    eliteUpgradeGoldCosts: [],
+    eliteEvolveGoldCosts: [],
     stats: [
       {
         level: 1,

@@ -6,7 +6,14 @@ use tauri::{AppHandle, Manager};
 
 use crate::errors::AppError;
 
-pub const USER_DATA_SCHEMA_VERSION: u32 = 1;
+use crate::canonical::{UserPlanDto, UserPlanModuleDto, UserPlanOperatorDto, UserPlanOperatorStateDto};
+
+pub const USER_DATA_SCHEMA_VERSION: u32 = 2;
+
+const MAX_ELITE: u8 = 2;
+const MAX_SKILL_LEVEL: u8 = 10;
+const MAX_MODULE_STAGE: u8 = 3;
+const MAX_PLAN_LEVEL: u32 = 90;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
@@ -15,6 +22,10 @@ pub struct UserData {
     pub schema_version: u32,
     #[serde(default)]
     pub favorites: Vec<String>,
+    #[serde(default)]
+    pub selected_operator_ids: Vec<String>,
+    #[serde(default)]
+    pub operator_plans: Vec<UserPlanOperatorDto>,
 }
 
 pub fn load_user_data(app: &AppHandle) -> Result<UserData, AppError> {
@@ -23,6 +34,8 @@ pub fn load_user_data(app: &AppHandle) -> Result<UserData, AppError> {
         return Ok(UserData {
             schema_version: USER_DATA_SCHEMA_VERSION,
             favorites: Vec::new(),
+            selected_operator_ids: Vec::new(),
+            operator_plans: Vec::new(),
         });
     }
 
@@ -75,6 +88,176 @@ pub fn toggle_favorite(app: &AppHandle, operator_id: &str) -> Result<bool, AppEr
     data.favorites.dedup();
     save_user_data(app, &data)?;
     Ok(true)
+}
+
+pub fn load_plan(app: &AppHandle) -> Result<UserPlanDto, AppError> {
+    let mut data = load_user_data(app)?;
+    data.selected_operator_ids = sanitize_ids(data.selected_operator_ids);
+    data.operator_plans = data
+        .operator_plans
+        .into_iter()
+        .filter_map(|plan| validate_plan(plan).ok())
+        .collect();
+
+    Ok(UserPlanDto {
+        selected_operator_ids: data.selected_operator_ids,
+        operators: data.operator_plans,
+    })
+}
+
+pub fn save_plan_selection(app: &AppHandle, operator_ids: &[String]) -> Result<Vec<String>, AppError> {
+    let mut data = load_user_data(app)?;
+    data.schema_version = USER_DATA_SCHEMA_VERSION;
+    data.selected_operator_ids = sanitize_ids(operator_ids.to_vec());
+    data.operator_plans
+        .retain(|plan| data.selected_operator_ids.iter().any(|id| id == &plan.operator_id));
+    save_user_data(app, &data)?;
+    Ok(data.selected_operator_ids)
+}
+
+pub fn save_plan_operator(
+    app: &AppHandle,
+    plan: &UserPlanOperatorDto,
+) -> Result<UserPlanOperatorDto, AppError> {
+    let mut data = load_user_data(app)?;
+    data.schema_version = USER_DATA_SCHEMA_VERSION;
+
+    let validated = validate_plan(plan.clone())?;
+    if let Some(index) = data
+        .operator_plans
+        .iter()
+        .position(|entry| entry.operator_id == validated.operator_id)
+    {
+        data.operator_plans[index] = validated.clone();
+    } else {
+        data.operator_plans.push(validated.clone());
+    }
+
+    if !data
+        .selected_operator_ids
+        .iter()
+        .any(|operator_id| operator_id == &validated.operator_id)
+    {
+        data.selected_operator_ids.push(validated.operator_id.clone());
+    }
+
+    data.selected_operator_ids = sanitize_ids(data.selected_operator_ids);
+    data.operator_plans
+        .sort_by(|left, right| left.operator_id.cmp(&right.operator_id));
+
+    save_user_data(app, &data)?;
+    Ok(validated)
+}
+
+pub fn remove_plan_operator(app: &AppHandle, operator_id: &str) -> Result<bool, AppError> {
+    let operator_id = sanitize_id(operator_id);
+    if operator_id.is_empty() {
+        return Ok(false);
+    }
+
+    let mut data = load_user_data(app)?;
+    data.schema_version = USER_DATA_SCHEMA_VERSION;
+
+    let selected_len = data.selected_operator_ids.len();
+    data.selected_operator_ids
+        .retain(|value| value != &operator_id);
+    let plan_len = data.operator_plans.len();
+    data.operator_plans
+        .retain(|value| value.operator_id != operator_id);
+
+    let changed = selected_len != data.selected_operator_ids.len() || plan_len != data.operator_plans.len();
+    if changed {
+        save_user_data(app, &data)?;
+    }
+
+    Ok(changed)
+}
+
+fn sanitize_ids(values: Vec<String>) -> Vec<String> {
+    let mut normalized = values
+        .into_iter()
+        .map(|value| sanitize_id(&value))
+        .filter(|value| !value.is_empty())
+        .collect::<Vec<_>>();
+    normalized.sort();
+    normalized.dedup();
+    normalized
+}
+
+fn sanitize_id(value: &str) -> String {
+    value.trim().to_string()
+}
+
+fn validate_plan(plan: UserPlanOperatorDto) -> Result<UserPlanOperatorDto, AppError> {
+    let operator_id = sanitize_id(&plan.operator_id);
+    if operator_id.is_empty() {
+        return Err(AppError::InvalidInput("operatorId".to_string()));
+    }
+
+    let current = validate_state(plan.current)?;
+    let target = validate_state(plan.target)?;
+
+    Ok(UserPlanOperatorDto {
+        operator_id,
+        current,
+        target,
+    })
+}
+
+fn validate_state(state: UserPlanOperatorStateDto) -> Result<UserPlanOperatorStateDto, AppError> {
+    if state.elite > MAX_ELITE {
+        return Err(AppError::InvalidInput("elite".to_string()));
+    }
+
+    if state.level == 0 || state.level > MAX_PLAN_LEVEL {
+        return Err(AppError::InvalidInput("level".to_string()));
+    }
+
+    let skill_levels = if state.skill_levels.is_empty() {
+        vec![1, 1, 1]
+    } else {
+        state
+            .skill_levels
+            .into_iter()
+            .map(|level| {
+                if !(1..=MAX_SKILL_LEVEL).contains(&level) {
+                    Err(AppError::InvalidInput("skillLevels".to_string()))
+                } else {
+                    Ok(level)
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()?
+    };
+
+    let modules = state
+        .modules
+        .into_iter()
+        .map(validate_module)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(UserPlanOperatorStateDto {
+        elite: state.elite,
+        level: state.level,
+        skill_levels,
+        modules,
+    })
+}
+
+fn validate_module(module: UserPlanModuleDto) -> Result<UserPlanModuleDto, AppError> {
+    let module_id = sanitize_id(&module.module_id);
+    if module_id.is_empty() {
+        return Err(AppError::InvalidInput("moduleId".to_string()));
+    }
+
+    if module.current_stage > MAX_MODULE_STAGE || module.target_stage > MAX_MODULE_STAGE {
+        return Err(AppError::InvalidInput("moduleStage".to_string()));
+    }
+
+    Ok(UserPlanModuleDto {
+        module_id,
+        current_stage: module.current_stage,
+        target_stage: module.target_stage,
+    })
 }
 
 fn user_data_path(app: &AppHandle) -> Result<PathBuf, AppError> {

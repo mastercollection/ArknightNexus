@@ -5,21 +5,22 @@ use crate::cache_model::{
     CachedOperatorModule, CachedModuleBattlePart, CachedModuleBattlePhase, CachedModuleCost,
     CachedModuleTalentCandidate, CachedModuleTraitCandidate, CachedOperatorRange,
     CachedOperatorRangeGrid, CachedOperatorSkillLevel, CachedOperatorStatPoint,
-    CachedOperatorStatProgression, CachedOperatorTalent, CachedOperatorTrait, CachedWorkshopExtraOutcome, CachedWorkshopFormula,
+    CachedOperatorStatProgression, CachedOperatorTalent, CachedOperatorTrait, CachedWorkshopExtraOutcome, CachedWorkshopFormula, CachedOperatorUpgradeCost, CachedOperatorUpgradeCostStage,
 };
 use crate::data_sources::RegionCode;
 use crate::raw_models::{
     RawBattleEquipEntry, RawBattleEquipPart, RawBattleEquipTable, RawBattleEquipTalentCandidate,
     RawBattleEquipTraitCandidate, RawBlackboard, RawBuildingData, RawCharacterEntry, RawCharacterTable,
-    RawEquipEntry, RawFavorTable, RawItemEntry, RawKeyFrame, RawLevelValue, RawNumberValue,
+    RawEquipEntry, RawFavorTable, RawGameDataConst, RawItemEntry, RawKeyFrame, RawLevelValue, RawNumberValue,
     RawPhaseValue, RawPotentialRank, RawRangeEntry, RawRangeTable, RawRarityValue, RawSkillEntry,
-    RawSkillLevel, RawSkillReference, RawSkillTable, RawTalentCandidate, RawTraitCandidate,
+    RawSkillLevel, RawSkillReference, RawSkillTable, RawTalentCandidate, RawTraitCandidate, RawCost, RawAllSkillLvlup, RawLevelUpCostCond,
 };
 
 pub fn normalize_operators(
     _region: RegionCode,
     characters: RawCharacterTable,
     skills: RawSkillTable,
+    gamedata_const: &RawGameDataConst,
     range_table: &RawRangeTable,
     modules_by_char: &HashMap<String, Vec<RawEquipEntry>>,
     battle_equip_table: &RawBattleEquipTable,
@@ -35,6 +36,7 @@ pub fn normalize_operators(
                 id,
                 character,
                 &skills,
+                gamedata_const,
                 range_table,
                 modules_by_char,
                 battle_equip_table,
@@ -198,6 +200,7 @@ fn normalize_operator(
     id: String,
     character: RawCharacterEntry,
     skills: &HashMap<String, RawSkillEntry>,
+    gamedata_const: &RawGameDataConst,
     range_table: &RawRangeTable,
     modules_by_char: &HashMap<String, Vec<RawEquipEntry>>,
     battle_equip_table: &RawBattleEquipTable,
@@ -210,10 +213,64 @@ fn normalize_operator(
         return None;
     }
 
+    let rarity = parse_rarity_value(&character.rarity);
+    let tier_index = rarity.saturating_sub(1) as usize;
     let elite_caps = character
         .phases
         .iter()
-        .map(|phase| phase.max_level)
+        .enumerate()
+        .map(|(index, phase)| {
+            gamedata_const
+                .max_level
+                .get(tier_index)
+                .and_then(|levels| levels.get(index).copied())
+                .unwrap_or(phase.max_level)
+        })
+        .collect::<Vec<_>>();
+    let elite_exp_costs = gamedata_const
+        .character_exp_map
+        .iter()
+        .map(|costs| {
+            costs
+                .iter()
+                .copied()
+                .take_while(|value| *value >= 0)
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    let elite_upgrade_gold_costs = gamedata_const
+        .character_upgrade_cost_map
+        .iter()
+        .map(|costs| {
+            costs
+                .iter()
+                .copied()
+                .take_while(|value| *value >= 0)
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    let elite_evolve_gold_costs = gamedata_const
+        .evolve_gold_cost
+        .get(tier_index)
+        .map(|costs| {
+            costs
+                .iter()
+                .copied()
+                .filter(|value| *value >= 0)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let elite_evolve_costs = character
+        .phases
+        .iter()
+        .skip(1)
+        .map(|phase| normalize_upgrade_costs(phase.evolve_cost.as_deref(), items_by_id))
+        .collect::<Vec<_>>();
+    let all_skill_level_up_costs = character
+        .all_skill_lvlup
+        .iter()
+        .enumerate()
+        .map(|(index, entry)| normalize_all_skill_lvlup(index, entry, items_by_id))
         .collect::<Vec<_>>();
 
     let stats = character
@@ -270,7 +327,7 @@ fn normalize_operator(
     let normalized_skills = character
         .skills
         .iter()
-        .filter_map(|skill_ref| normalize_skill_reference(skill_ref, skills, range_table))
+        .filter_map(|skill_ref| normalize_skill_reference(skill_ref, skills, range_table, items_by_id))
         .collect::<Vec<_>>();
 
     let modules = modules_by_char
@@ -317,7 +374,7 @@ fn normalize_operator(
         } else {
             character.appellation
         },
-        rarity: parse_rarity_value(&character.rarity),
+        rarity,
         profession: humanize_profession(&character.profession),
         branch: sub_prof_names
             .get(&character.sub_profession_id)
@@ -334,6 +391,11 @@ fn normalize_operator(
         modules,
         archetype_description,
         elite_caps,
+        elite_exp_costs,
+        elite_upgrade_gold_costs,
+        elite_evolve_gold_costs,
+        elite_evolve_costs,
+        all_skill_level_up_costs,
         stats,
         skills: normalized_skills,
     })
@@ -570,6 +632,7 @@ fn normalize_skill_reference(
     skill_ref: &RawSkillReference,
     skills: &HashMap<String, RawSkillEntry>,
     range_table: &RawRangeTable,
+    items_by_id: &HashMap<String, RawItemEntry>,
 ) -> Option<CachedOperatorSkill> {
     let skill_id = skill_ref.skill_id.as_ref()?.to_owned();
     let skill = skills.get(&skill_id)?;
@@ -596,8 +659,55 @@ fn normalize_skill_reference(
         description,
         unlock_elite: parse_phase_value(&skill_ref.unlock_cond.phase),
         unlock_level: parse_level_value(&skill_ref.unlock_cond.level),
+        upgrade_costs: skill_ref
+            .level_up_cost_cond
+            .iter()
+            .enumerate()
+            .map(|(index, entry)| normalize_skill_upgrade_cost(index, entry, items_by_id))
+            .collect(),
         levels,
     })
+}
+
+fn normalize_upgrade_costs(
+    costs: Option<&[RawCost]>,
+    items_by_id: &HashMap<String, RawItemEntry>,
+) -> Vec<CachedOperatorUpgradeCost> {
+    costs
+        .unwrap_or_default()
+        .iter()
+        .map(|cost| CachedOperatorUpgradeCost {
+            id: cost.id.clone(),
+            count: cost.count.as_f64(),
+            cost_type: cost.cost_type.clone(),
+            item_name: items_by_id.get(&cost.id).map(|item| item.name.clone()),
+            item_rarity: items_by_id.get(&cost.id).map(|item| item.rarity.as_string()),
+            item_icon_id: items_by_id.get(&cost.id).map(|item| item.icon_id.clone()),
+            item_type: items_by_id.get(&cost.id).map(|item| item.item_type.as_string()),
+        })
+        .collect()
+}
+
+fn normalize_all_skill_lvlup(
+    index: usize,
+    entry: &RawAllSkillLvlup,
+    items_by_id: &HashMap<String, RawItemEntry>,
+) -> CachedOperatorUpgradeCostStage {
+    CachedOperatorUpgradeCostStage {
+        level: index as u8 + 2,
+        costs: normalize_upgrade_costs(entry.lvl_up_cost.as_deref(), items_by_id),
+    }
+}
+
+fn normalize_skill_upgrade_cost(
+    index: usize,
+    entry: &RawLevelUpCostCond,
+    items_by_id: &HashMap<String, RawItemEntry>,
+) -> CachedOperatorUpgradeCostStage {
+    CachedOperatorUpgradeCostStage {
+        level: index as u8 + 8,
+        costs: normalize_upgrade_costs(entry.level_up_cost.as_deref(), items_by_id),
+    }
 }
 
 fn normalize_skill_level(

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 20;
+pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 23;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -25,6 +25,27 @@ pub struct CachedOperatorSummary {
     #[serde(default)]
     pub groups: Vec<String>,
     pub thumbnail_hue: u16,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedOperatorUpgradeCost {
+    pub id: String,
+    pub count: f64,
+    #[serde(rename = "type")]
+    pub cost_type: String,
+    pub item_name: Option<String>,
+    pub item_rarity: Option<String>,
+    pub item_icon_id: Option<String>,
+    pub item_type: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CachedOperatorUpgradeCostStage {
+    pub level: u8,
+    #[serde(default)]
+    pub costs: Vec<CachedOperatorUpgradeCost>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -210,6 +231,8 @@ pub struct CachedOperatorSkill {
     pub unlock_elite: u8,
     #[serde(default)]
     pub unlock_level: u32,
+    #[serde(default)]
+    pub upgrade_costs: Vec<CachedOperatorUpgradeCostStage>,
     pub levels: Vec<CachedOperatorSkillLevel>,
 }
 
@@ -338,6 +361,16 @@ pub struct CachedOperator {
     pub archetype_description: String,
     #[serde(default)]
     pub elite_caps: Vec<u32>,
+    #[serde(default)]
+    pub elite_exp_costs: Vec<Vec<i64>>,
+    #[serde(default)]
+    pub elite_upgrade_gold_costs: Vec<Vec<i64>>,
+    #[serde(default)]
+    pub elite_evolve_gold_costs: Vec<i64>,
+    #[serde(default)]
+    pub elite_evolve_costs: Vec<Vec<CachedOperatorUpgradeCost>>,
+    #[serde(default)]
+    pub all_skill_level_up_costs: Vec<CachedOperatorUpgradeCostStage>,
     #[serde(default)]
     pub stats: Vec<CachedOperatorStatProgression>,
     #[serde(default)]

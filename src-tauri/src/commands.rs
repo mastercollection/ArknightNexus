@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::canonical::{
     BuildingFormulaBundleDto, ItemDto, OperatorDetailDto, OperatorSummaryDto, RegionSyncStatus,
-    SyncResult,
+    SyncResult, UserPlanDto, UserPlanOperatorDto,
 };
 use crate::data_sources::RegionCode;
 use crate::errors::AppError;
@@ -48,6 +48,24 @@ pub struct GetOperatorDetailRequest {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ToggleOperatorFavoriteRequest {
+    pub operator_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SaveUserPlanSelectionRequest {
+    pub operator_ids: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SaveUserPlanOperatorRequest {
+    pub plan: UserPlanOperatorDto,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RemoveUserPlanOperatorRequest {
     pub operator_id: String,
 }
 
@@ -130,6 +148,35 @@ pub fn toggle_operator_favorite(
     request: ToggleOperatorFavoriteRequest,
 ) -> Result<bool, String> {
     service::toggle_operator_favorite(&app, &request.operator_id).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn get_user_plan(app: AppHandle) -> Result<UserPlanDto, String> {
+    service::get_user_plan(&app).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn save_user_plan_selection(
+    app: AppHandle,
+    request: SaveUserPlanSelectionRequest,
+) -> Result<Vec<String>, String> {
+    service::save_user_plan_selection(&app, &request.operator_ids).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn save_user_plan_operator(
+    app: AppHandle,
+    request: SaveUserPlanOperatorRequest,
+) -> Result<UserPlanOperatorDto, String> {
+    service::save_user_plan_operator(&app, &request.plan).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn remove_user_plan_operator(
+    app: AppHandle,
+    request: RemoveUserPlanOperatorRequest,
+) -> Result<bool, String> {
+    service::remove_user_plan_operator(&app, &request.operator_id).map_err(map_error)
 }
 
 fn parse_region(value: &str) -> Result<RegionCode, String> {

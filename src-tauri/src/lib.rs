@@ -44,7 +44,11 @@ pub fn run() {
             commands::get_region_sync_status,
             commands::get_region_terms,
             commands::get_user_favorites,
-            commands::toggle_operator_favorite
+            commands::toggle_operator_favorite,
+            commands::get_user_plan,
+            commands::save_user_plan_selection,
+            commands::save_user_plan_operator,
+            commands::remove_user_plan_operator
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

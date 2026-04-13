@@ -4,6 +4,8 @@ use thiserror::Error;
 pub enum AppError {
     #[error("지원하지 않는 지역 코드입니다.")]
     InvalidRegion,
+    #[error("잘못된 입력값입니다: {0}")]
+    InvalidInput(String),
     #[error("원격 데이터를 내려받지 못했습니다.")]
     Network(#[from] reqwest::Error),
     #[error("{context} 파싱 실패: {path} ({message})")]

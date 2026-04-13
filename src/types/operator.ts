@@ -130,7 +130,23 @@ export interface OperatorSkill {
   description: string
   unlockElite?: number
   unlockLevel?: number
+  upgradeCosts?: OperatorUpgradeCostStage[]
   levels: OperatorSkillLevel[]
+}
+
+export interface OperatorUpgradeCost {
+  id: string
+  count: number
+  type: string
+  itemName?: string | null
+  itemRarity?: string | null
+  itemIconId?: string | null
+  itemType?: string | null
+}
+
+export interface OperatorUpgradeCostStage {
+  level: number
+  costs: OperatorUpgradeCost[]
 }
 
 export interface OperatorRangeGrid {
@@ -246,8 +262,37 @@ export interface OperatorDetail extends OperatorSummary {
   modules: OperatorModule[]
   archetypeDescription: string
   eliteCaps: number[]
+  eliteExpCosts: number[][]
+  eliteUpgradeGoldCosts: number[][]
+  eliteEvolveGoldCosts: number[]
+  eliteEvolveCosts?: OperatorUpgradeCost[][]
+  allSkillLevelUpCosts?: OperatorUpgradeCostStage[]
   stats: OperatorStatProgression[]
   skills: OperatorSkill[]
+}
+
+export interface UserPlanModule {
+  moduleId: string
+  currentStage: number
+  targetStage: number
+}
+
+export interface UserPlanOperatorState {
+  elite: number
+  level: number
+  skillLevels: number[]
+  modules: UserPlanModule[]
+}
+
+export interface UserPlanOperator {
+  operatorId: string
+  current: UserPlanOperatorState
+  target: UserPlanOperatorState
+}
+
+export interface UserPlan {
+  selectedOperatorIds: string[]
+  operators: UserPlanOperator[]
 }
 
 export interface OperatorFilters {

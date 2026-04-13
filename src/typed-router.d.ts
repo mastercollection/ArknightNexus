@@ -23,7 +23,9 @@ declare module 'vue-router/auto-routes' {
     '/items/[itemId]': RouteRecordInfo<'/items/[itemId]', '/items/:itemId', { itemId: ParamValue<true> }, { itemId: ParamValue<false> }>,
     '/operators': RouteRecordInfo<'/operators', '/operators', Record<never, never>, Record<never, never>, '/operators/[operatorId]'>,
     '/operators/[operatorId]': RouteRecordInfo<'/operators/[operatorId]', '/operators/:operatorId', { operatorId: ParamValue<true> }, { operatorId: ParamValue<false> }>,
-    '/plan': RouteRecordInfo<'/plan', '/plan', Record<never, never>, Record<never, never>>,
+    '/plan': RouteRecordInfo<'/plan', '/plan', Record<never, never>, Record<never, never>, '/plan/' | '/plan/[operatorId]'>,
+    '/plan/': RouteRecordInfo<'/plan/', '/plan', Record<never, never>, Record<never, never>>,
+    '/plan/[operatorId]': RouteRecordInfo<'/plan/[operatorId]', '/plan/:operatorId', { operatorId: ParamValue<true> }, { operatorId: ParamValue<false> }>,
   }
 
   /**
@@ -58,7 +60,15 @@ declare module 'vue-router/auto-routes' {
       views: never
     }
     'src/pages/plan.vue': {
-      routes: '/plan'
+      routes: '/plan' | '/plan/' | '/plan/[operatorId]'
+      views: 'default'
+    }
+    'src/pages/plan/index.vue': {
+      routes: '/plan/'
+      views: never
+    }
+    'src/pages/plan/[operatorId].vue': {
+      routes: '/plan/[operatorId]'
       views: never
     }
   }

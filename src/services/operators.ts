@@ -10,6 +10,8 @@ import type {
   RegionSyncStatus,
   RegionTerms,
   SyncResult,
+  UserPlan,
+  UserPlanOperator,
 } from '~/types/operator'
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { appCacheDir, join } from '@tauri-apps/api/path'
@@ -318,6 +320,50 @@ export async function toggleOperatorFavorite(operatorId: string): Promise<boolea
     return false
 
   return invoke<boolean>('toggle_operator_favorite', {
+    request: {
+      operatorId,
+    },
+  })
+}
+
+export async function getUserPlan(): Promise<UserPlan> {
+  if (!canUseTauri()) {
+    return {
+      selectedOperatorIds: [],
+      operators: [],
+    }
+  }
+
+  return invoke<UserPlan>('get_user_plan')
+}
+
+export async function saveUserPlanSelection(operatorIds: string[]): Promise<string[]> {
+  if (!canUseTauri())
+    return operatorIds
+
+  return invoke<string[]>('save_user_plan_selection', {
+    request: {
+      operatorIds,
+    },
+  })
+}
+
+export async function saveUserPlanOperator(plan: UserPlanOperator): Promise<UserPlanOperator> {
+  if (!canUseTauri())
+    return plan
+
+  return invoke<UserPlanOperator>('save_user_plan_operator', {
+    request: {
+      plan,
+    },
+  })
+}
+
+export async function removeUserPlanOperator(operatorId: string): Promise<boolean> {
+  if (!canUseTauri())
+    return false
+
+  return invoke<boolean>('remove_user_plan_operator', {
     request: {
       operatorId,
     },

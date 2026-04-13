@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 px-4 pt-3 -mx-4">
+  <header class="sticky top-0 z-40 overflow-x-hidden px-4 pt-3 -mx-4">
     <div class="top-bar-shell">
       <div class="grid gap-3">
         <div class="flex items-center gap-3">

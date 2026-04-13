@@ -52,6 +52,27 @@ pub struct OperatorBlackboardEntryDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct OperatorUpgradeCostDto {
+    pub id: String,
+    pub count: f64,
+    #[serde(rename = "type")]
+    pub cost_type: String,
+    pub item_name: Option<String>,
+    pub item_rarity: Option<String>,
+    pub item_icon_id: Option<String>,
+    pub item_type: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OperatorUpgradeCostStageDto {
+    pub level: u8,
+    #[serde(default)]
+    pub costs: Vec<OperatorUpgradeCostDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct OperatorSkillLevelDto {
     pub level: u8,
     pub sp_cost: u32,
@@ -93,6 +114,8 @@ pub struct OperatorSkillDto {
     pub unlock_elite: u8,
     #[serde(default)]
     pub unlock_level: u32,
+    #[serde(default)]
+    pub upgrade_costs: Vec<OperatorUpgradeCostStageDto>,
     pub levels: Vec<OperatorSkillLevelDto>,
 }
 
@@ -343,8 +366,54 @@ pub struct OperatorDetailDto {
     pub modules: Vec<OperatorModuleDto>,
     pub archetype_description: String,
     pub elite_caps: Vec<u32>,
+    #[serde(default)]
+    pub elite_exp_costs: Vec<Vec<i64>>,
+    #[serde(default)]
+    pub elite_upgrade_gold_costs: Vec<Vec<i64>>,
+    #[serde(default)]
+    pub elite_evolve_gold_costs: Vec<i64>,
+    #[serde(default)]
+    pub elite_evolve_costs: Vec<Vec<OperatorUpgradeCostDto>>,
+    #[serde(default)]
+    pub all_skill_level_up_costs: Vec<OperatorUpgradeCostStageDto>,
     pub stats: Vec<OperatorStatProgressionDto>,
     pub skills: Vec<OperatorSkillDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserPlanModuleDto {
+    pub module_id: String,
+    pub current_stage: u8,
+    pub target_stage: u8,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserPlanOperatorStateDto {
+    pub elite: u8,
+    pub level: u32,
+    #[serde(default)]
+    pub skill_levels: Vec<u8>,
+    #[serde(default)]
+    pub modules: Vec<UserPlanModuleDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserPlanOperatorDto {
+    pub operator_id: String,
+    pub current: UserPlanOperatorStateDto,
+    pub target: UserPlanOperatorStateDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserPlanDto {
+    #[serde(default)]
+    pub selected_operator_ids: Vec<String>,
+    #[serde(default)]
+    pub operators: Vec<UserPlanOperatorDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     ItemIcon: typeof import('./components/ItemIcon.vue')['default']
     OperatorPortrait: typeof import('./components/OperatorPortrait.vue')['default']
+    PlanMaterialsGrid: typeof import('./components/PlanMaterialsGrid.vue')['default']
     RichTextContent: typeof import('./components/RichTextContent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

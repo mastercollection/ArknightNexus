@@ -13,14 +13,14 @@ use crate::cache_model::{
     CachedOperatorModule, CachedOperatorPotential, CachedOperatorRange, CachedOperatorRangeGrid,
     CachedOperatorSkill, CachedOperatorSkillLevel, CachedOperatorStatPoint,
     CachedOperatorStatProgression, CachedOperatorTalent, CachedOperatorTrait,
-    CachedOperatorSummary, CachedWorkshopExtraOutcome, CachedWorkshopFormula,
+    CachedOperatorSummary, CachedWorkshopExtraOutcome, CachedWorkshopFormula, CachedOperatorUpgradeCost, CachedOperatorUpgradeCostStage,
 };
 use crate::canonical::{
     BuildingCostDto, BuildingFormulaBundleDto, BuildingRequireRoomDto, ItemBuildingProductDto, ItemDto, ItemStageDropDto, ManufactFormulaDto, ModuleCostDto, OperatorBlackboardEntryDto, OperatorDetailDto, OperatorModuleBattlePartDto,
     OperatorModuleBattlePhaseDto, OperatorModuleDto, OperatorModuleTalentCandidateDto,
     OperatorModuleTraitCandidateDto, OperatorPotentialDto, OperatorRangeDto,
     OperatorRangeGridDto, OperatorSkillDto, OperatorSkillLevelDto, OperatorStatPointDto,
-    OperatorStatProgressionDto, OperatorSummaryDto, OperatorTalentDto, OperatorTraitDto,
+    OperatorStatProgressionDto, OperatorSummaryDto, OperatorTalentDto, OperatorTraitDto, OperatorUpgradeCostDto, OperatorUpgradeCostStageDto, UserPlanDto, UserPlanOperatorDto,
     RegionSyncStatus, SyncResult, WorkshopExtraOutcomeDto, WorkshopFormulaDto,
 };
 use crate::data_sources::RegionCode;
@@ -116,6 +116,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         region,
         characters,
         skills,
+        &gamedata_const,
         &range_table,
         &modules_by_char,
         &battle_equip_table,
@@ -290,6 +291,28 @@ pub fn toggle_operator_favorite(app: &AppHandle, operator_id: &str) -> Result<bo
     user_store::toggle_favorite(app, operator_id)
 }
 
+pub fn get_user_plan(app: &AppHandle) -> Result<UserPlanDto, AppError> {
+    user_store::load_plan(app)
+}
+
+pub fn save_user_plan_selection(
+    app: &AppHandle,
+    operator_ids: &[String],
+) -> Result<Vec<String>, AppError> {
+    user_store::save_plan_selection(app, operator_ids)
+}
+
+pub fn save_user_plan_operator(
+    app: &AppHandle,
+    plan: &UserPlanOperatorDto,
+) -> Result<UserPlanOperatorDto, AppError> {
+    user_store::save_plan_operator(app, plan)
+}
+
+pub fn remove_user_plan_operator(app: &AppHandle, operator_id: &str) -> Result<bool, AppError> {
+    user_store::remove_plan_operator(app, operator_id)
+}
+
 struct FetchedJson {
     body: String,
     revision: Option<String>,
@@ -368,6 +391,19 @@ fn cached_to_detail(operator: CachedOperator) -> OperatorDetailDto {
             .collect(),
         archetype_description: operator.archetype_description,
         elite_caps: operator.elite_caps,
+        elite_exp_costs: operator.elite_exp_costs,
+        elite_upgrade_gold_costs: operator.elite_upgrade_gold_costs,
+        elite_evolve_gold_costs: operator.elite_evolve_gold_costs,
+        elite_evolve_costs: operator
+            .elite_evolve_costs
+            .into_iter()
+            .map(|costs| costs.into_iter().map(cached_upgrade_cost_to_dto).collect())
+            .collect(),
+        all_skill_level_up_costs: operator
+            .all_skill_level_up_costs
+            .into_iter()
+            .map(cached_upgrade_cost_stage_to_dto)
+            .collect(),
         stats: operator.stats.into_iter().map(cached_stats_to_dto).collect(),
         skills: operator.skills.into_iter().map(cached_skill_to_dto).collect(),
     }
@@ -551,11 +587,39 @@ fn cached_skill_to_dto(skill: CachedOperatorSkill) -> OperatorSkillDto {
         description: skill.description,
         unlock_elite: skill.unlock_elite,
         unlock_level: skill.unlock_level,
+        upgrade_costs: skill
+            .upgrade_costs
+            .into_iter()
+            .map(cached_upgrade_cost_stage_to_dto)
+            .collect(),
         levels: skill
             .levels
             .into_iter()
             .map(cached_skill_level_to_dto)
             .collect(),
+    }
+}
+
+fn cached_upgrade_cost_stage_to_dto(cost: CachedOperatorUpgradeCostStage) -> OperatorUpgradeCostStageDto {
+    OperatorUpgradeCostStageDto {
+        level: cost.level,
+        costs: cost
+            .costs
+            .into_iter()
+            .map(cached_upgrade_cost_to_dto)
+            .collect(),
+    }
+}
+
+fn cached_upgrade_cost_to_dto(cost: CachedOperatorUpgradeCost) -> OperatorUpgradeCostDto {
+    OperatorUpgradeCostDto {
+        id: cost.id,
+        count: cost.count,
+        cost_type: cost.cost_type,
+        item_name: cost.item_name,
+        item_rarity: cost.item_rarity,
+        item_icon_id: cost.item_icon_id,
+        item_type: cost.item_type,
     }
 }
 

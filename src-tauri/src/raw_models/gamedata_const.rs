@@ -20,6 +20,14 @@ pub struct RawTermDescription {
 pub struct RawGameDataConst {
     #[serde(default)]
     pub term_description_dict: RawTermDescriptionDict,
+    #[serde(default)]
+    pub max_level: Vec<Vec<u32>>,
+    #[serde(default)]
+    pub character_exp_map: Vec<Vec<i64>>,
+    #[serde(default)]
+    pub character_upgrade_cost_map: Vec<Vec<i64>>,
+    #[serde(default)]
+    pub evolve_gold_cost: Vec<Vec<i64>>,
 }
 
 impl RawGameDataConst {
