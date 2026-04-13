@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ItemEntry, UserPlanOperator } from '~/types/operator'
+import type { BuildingFormulaBundle, ItemEntry, UserPlanOperator } from '~/types/operator'
 import { ArrowLeft, DocumentChecked } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import ItemIcon from '~/components/ItemIcon.vue'
 import PlanMaterialsGrid from '~/components/PlanMaterialsGrid.vue'
+import { createEmptyBuildingFormulaBundle, loadPlanReferenceData } from '~/composables/usePlanReferenceData'
 import { useRegionPreference } from '~/composables'
 import {
   calculatePlanCostsWithItems,
@@ -35,7 +36,9 @@ const saveState = ref<'idle' | 'success' | 'error'>('idle')
 const operator = ref<Awaited<ReturnType<typeof getOperatorById>>>()
 const localPlan = ref<UserPlanOperator>()
 const itemsById = ref<Record<string, ItemEntry>>({})
+const buildingFormulas = ref<BuildingFormulaBundle>(createEmptyBuildingFormulaBundle())
 const moduleTypeIconSources = ref<Record<string, string>>({})
+const detailExpandRecipes = ref(false)
 const numberFormatter = new Intl.NumberFormat('ko-KR')
 const expItemId = '5001'
 
@@ -96,12 +99,13 @@ async function loadDetailPage() {
   isLoading.value = true
   errorMessage.value = ''
   saveState.value = 'idle'
+  detailExpandRecipes.value = false
 
   try {
-    const [detail, plan, items] = await Promise.all([
+    const [detail, plan, references] = await Promise.all([
       getOperatorById(operatorId.value, region.value),
       getUserPlan(),
-      listItems(region.value),
+      loadPlanReferenceData(region.value),
     ])
 
     if (!detail) {
@@ -113,13 +117,15 @@ async function loadDetailPage() {
 
     operator.value = detail
     localPlan.value = resolvePlanOperator(detail, getPlanByOperatorId(plan, detail.id))
-    itemsById.value = Object.fromEntries(items.map(item => [item.itemId, item]))
+    itemsById.value = references.itemsById
+    buildingFormulas.value = references.formulas
     await loadModuleTypeImageSources()
   }
   catch (error) {
     operator.value = undefined
     localPlan.value = undefined
     itemsById.value = {}
+    buildingFormulas.value = createEmptyBuildingFormulaBundle()
     errorMessage.value = String(error)
   }
   finally {
@@ -179,6 +185,14 @@ function getSkillLevelLabel(level: number) {
 
 function formatNumber(value: number) {
   return numberFormatter.format(value)
+}
+
+function openItemDetail(itemId: string) {
+  router.push(`/items/${itemId}`)
+}
+
+function toggleDetailExpandRecipes() {
+  detailExpandRecipes.value = !detailExpandRecipes.value
 }
 
 async function loadModuleTypeImageSources() {
@@ -444,25 +458,33 @@ export default {
             >
               <article v-if="showExpOverview" class="grid gap-1.5 rounded-panel bg-[rgba(255,255,255,0.03)] p-3 text-center">
                 <span class="text-[0.8rem] text-[rgba(191,201,220,0.72)]">{{ t('planPage.summary.expLabel') }}</span>
-                <div class="mx-auto">
+                <button
+                  type="button"
+                  class="mx-auto border-0 bg-transparent p-0"
+                  @click="openItemDetail(expItemId)"
+                >
                   <ItemIcon
                     :item-id="expItemId"
                     :icon-id="itemsById[expItemId]?.iconId"
                     :name="itemsById[expItemId]?.name ?? t('planPage.summary.expLabel')"
                   />
-                </div>
+                </button>
                 <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(farmingEstimate?.exp ?? 0) }}</strong>
               </article>
 
               <article v-if="showLmdOverview" class="grid gap-1.5 rounded-panel bg-[rgba(255,255,255,0.03)] p-3 text-center">
                 <span class="text-[0.8rem] text-[rgba(191,201,220,0.72)]">{{ t('planPage.summary.lmdLabel') }}</span>
-                <div class="mx-auto">
+                <button
+                  type="button"
+                  class="mx-auto border-0 bg-transparent p-0"
+                  @click="openItemDetail(farmingEstimate?.lmdItem?.id ?? '4001')"
+                >
                   <ItemIcon
                     :item-id="farmingEstimate?.lmdItem?.id ?? '4001'"
                     :icon-id="farmingEstimate?.lmdItem?.iconId"
                     :name="farmingEstimate?.lmdItem?.name ?? t('planPage.summary.lmdLabel')"
                   />
-                </div>
+                </button>
                 <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(farmingEstimate?.lmd ?? 0) }}</strong>
               </article>
             </div>
@@ -511,7 +533,11 @@ export default {
             <PlanMaterialsGrid
               :materials="costBreakdown?.materials ?? []"
               :empty-label="t('planPage.detail.noMaterials')"
+              :items-by-id="itemsById"
+              :formulas="buildingFormulas"
               columns-class="grid-cols-2 gap-2"
+              :expanded="detailExpandRecipes"
+              @toggle-expand="toggleDetailExpandRecipes"
             />
           </section>
         </aside>

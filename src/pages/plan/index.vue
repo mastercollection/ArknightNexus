@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { ItemEntry, OperatorDetail, OperatorSummary, UserPlan } from '~/types/operator'
+import type { BuildingFormulaBundle, ItemEntry, OperatorDetail, OperatorSummary, UserPlan } from '~/types/operator'
 import { ArrowLeft, Check, Close, Delete, Plus, Search } from '@element-plus/icons-vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import ItemIcon from '~/components/ItemIcon.vue'
 import PlanMaterialsGrid from '~/components/PlanMaterialsGrid.vue'
+import { loadPlanReferenceData, createEmptyBuildingFormulaBundle } from '~/composables/usePlanReferenceData'
 import { useRegionPreference } from '~/composables'
 import { aggregatePlanCostsWithItems, estimatePlanFarming, getPlanByOperatorId, resolvePlanOperator } from '~/composables/usePlanCosts'
 import { translateProfession } from '~/i18n'
@@ -40,7 +41,9 @@ const userPlan = ref<UserPlan>({
   operators: [],
 })
 const itemsById = ref<Record<string, ItemEntry>>({})
+const buildingFormulas = ref<BuildingFormulaBundle>(createEmptyBuildingFormulaBundle())
 const summaryDetails = ref<OperatorDetail[]>([])
+const summaryExpandRecipes = ref(false)
 const numberFormatter = new Intl.NumberFormat('ko-KR')
 const expItemId = '5001'
 const tabOptions = computed(() => [
@@ -98,23 +101,33 @@ function formatNumber(value: number) {
   return numberFormatter.format(value)
 }
 
+function openItemDetail(itemId: string) {
+  router.push(`/items/${itemId}`)
+}
+
+function toggleSummaryExpandRecipes() {
+  summaryExpandRecipes.value = !summaryExpandRecipes.value
+}
+
 async function loadPlanOperators() {
   isLoading.value = true
   errorMessage.value = ''
   pickerOpen.value = false
   pickerQuery.value = ''
+  summaryExpandRecipes.value = false
 
   try {
     const [favoriteIds, operatorList, plan, items] = await Promise.all([
       getUserFavorites(),
       listOperators({}, region.value),
       getUserPlan(),
-      listItems(region.value),
+      loadPlanReferenceData(region.value),
     ])
 
     operators.value = operatorList
     userPlan.value = plan
-    itemsById.value = Object.fromEntries(items.map(item => [item.itemId, item]))
+    itemsById.value = items.itemsById
+    buildingFormulas.value = items.formulas
     selectedOperatorIds.value = plan.selectedOperatorIds.filter(id => operatorList.some(operator => operator.id === id))
     favoriteOperatorIds.value = favoriteIds.filter(id => operatorList.some(operator => operator.id === id))
   }
@@ -123,6 +136,7 @@ async function loadPlanOperators() {
     favoriteOperatorIds.value = []
     selectedOperatorIds.value = []
     itemsById.value = {}
+    buildingFormulas.value = createEmptyBuildingFormulaBundle()
     userPlan.value = {
       selectedOperatorIds: [],
       operators: [],
@@ -216,6 +230,7 @@ onMounted(() => {
 })
 
 watch(region, () => {
+  summaryExpandRecipes.value = false
   void loadPlanOperators()
 })
 
@@ -411,24 +426,32 @@ export default {
             <div class="grid grid-cols-2 gap-3">
               <article v-if="showSummaryExp" class="grid gap-1.5 rounded-panel panel-soft p-3 text-center">
                 <span class="eyebrow">{{ t('planPage.summary.expLabel') }}</span>
-                <div class="mx-auto">
+                <button
+                  type="button"
+                  class="mx-auto border-0 bg-transparent p-0"
+                  @click="openItemDetail(expItemId)"
+                >
                   <ItemIcon
                     :item-id="expItemId"
                     :icon-id="itemsById[expItemId]?.iconId"
                     :name="itemsById[expItemId]?.name ?? t('planPage.summary.expLabel')"
                   />
-                </div>
+                </button>
                 <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(summaryFarming.exp) }}</strong>
               </article>
               <article v-if="showSummaryLmd" class="grid gap-1.5 rounded-panel panel-soft p-3 text-center">
                 <span class="eyebrow">{{ t('planPage.summary.lmdLabel') }}</span>
-                <div class="mx-auto">
+                <button
+                  type="button"
+                  class="mx-auto border-0 bg-transparent p-0"
+                  @click="openItemDetail(summaryFarming.lmdItem?.id ?? '4001')"
+                >
                   <ItemIcon
                     :item-id="summaryFarming.lmdItem?.id ?? '4001'"
                     :icon-id="summaryFarming.lmdItem?.iconId"
                     :name="summaryFarming.lmdItem?.name ?? t('planPage.summary.lmdLabel')"
                   />
-                </div>
+                </button>
                 <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(summaryFarming.lmd) }}</strong>
               </article>
             </div>
@@ -492,6 +515,10 @@ export default {
             <PlanMaterialsGrid
               :materials="summaryTotals.materials"
               :empty-label="t('planPage.detail.noMaterials')"
+              :items-by-id="itemsById"
+              :formulas="buildingFormulas"
+              :expanded="summaryExpandRecipes"
+              @toggle-expand="toggleSummaryExpandRecipes"
             />
           </section>
 

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 23;
+pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 24;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
