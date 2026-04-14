@@ -387,6 +387,8 @@ pub struct RegionSnapshot {
     pub schema_version: u32,
     pub region: String,
     pub source_revision: String,
+    #[serde(default)]
+    pub source_version: Option<String>,
     pub fetched_at: String,
     #[serde(default)]
     pub stage_codes: HashMap<String, String>,
@@ -407,6 +409,8 @@ pub struct RegionSummarySnapshot {
     pub schema_version: u32,
     pub region: String,
     pub source_revision: String,
+    #[serde(default)]
+    pub source_version: Option<String>,
     pub fetched_at: String,
     #[serde(default)]
     pub operators: Vec<CachedOperatorSummary>,

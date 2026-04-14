@@ -41,6 +41,7 @@ impl RegionCode {
         SourceDescriptor {
             repo: "https://github.com/ArknightsAssets/ArknightsGamedata",
             branch: "master",
+            data_version_path: format!("{region}/gamedata/excel/data_version.txt"),
             character_path: format!("{region}/gamedata/excel/character_table.json"),
             skill_path: format!("{region}/gamedata/excel/skill_table.json"),
             gamedata_const_path: format!("{region}/gamedata/excel/gamedata_const.json"),
@@ -60,6 +61,7 @@ impl RegionCode {
 pub struct SourceDescriptor {
     pub repo: &'static str,
     pub branch: &'static str,
+    pub data_version_path: String,
     pub character_path: String,
     pub skill_path: String,
     pub gamedata_const_path: String,

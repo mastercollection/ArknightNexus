@@ -422,7 +422,11 @@ pub struct UserPlanDto {
 #[serde(rename_all = "camelCase")]
 pub struct RegionSyncStatus {
     pub region: String,
+    #[serde(default)]
     pub source_revision: Option<String>,
+    #[serde(default)]
+    pub source_version: Option<String>,
+    #[serde(default)]
     pub fetched_at: Option<String>,
     pub operator_count: usize,
     pub is_ready: bool,
@@ -433,6 +437,7 @@ pub struct RegionSyncStatus {
 pub struct SyncResult {
     pub region: String,
     pub source_revision: String,
+    pub source_version: String,
     pub updated_at: String,
     pub operator_count: usize,
     pub status: String,

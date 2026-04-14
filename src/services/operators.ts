@@ -236,30 +236,20 @@ function getFallbackOperatorById(id: string): OperatorDetail | undefined {
 
 async function ensureRegionReady(region: RegionCode) {
   setI18nLocale(region)
-  if (!canUseTauri() || regionReadyCache.has(region))
+  if (!canUseTauri())
     return
 
-  try {
-    await invoke('list_operators', {
-      request: {
-        region,
-      },
-    })
-    await invoke<Record<string, string>>('get_region_terms', {
-      request: {
-        region,
-      },
-    })
-    regionReadyCache.add(region)
-    return
-  }
-  catch (error) {
-    if (!String(error).includes('동기화된 데이터')) {
-      throw error
-    }
+  const result = await invoke<SyncResult>('ensure_region_fresh', {
+    request: {
+      region,
+    },
+  })
+
+  if (result.status === 'success') {
+    regionTermsCache.delete(region)
+    regionStageCodeCache.delete(region)
   }
 
-  await syncRegionData(region)
   regionReadyCache.add(region)
 }
 
@@ -269,6 +259,7 @@ export async function syncRegionData(region: RegionCode = DEFAULT_REGION): Promi
     return {
       region,
       sourceRevision: 'fallback',
+      sourceVersion: 'fallback',
       updatedAt: new Date().toISOString(),
       operatorCount: fallbackOperators.length,
       status: 'fallback',
@@ -281,6 +272,8 @@ export async function syncRegionData(region: RegionCode = DEFAULT_REGION): Promi
     },
   })
   regionReadyCache.add(region)
+  regionTermsCache.delete(region)
+  regionStageCodeCache.delete(region)
   return result
 }
 
@@ -290,6 +283,7 @@ export async function getRegionSyncStatus(): Promise<RegionSyncStatus[]> {
       {
         region: DEFAULT_REGION,
         sourceRevision: 'fallback',
+        sourceVersion: 'fallback',
         fetchedAt: new Date().toISOString(),
         operatorCount: fallbackOperators.length,
         isReady: true,
@@ -305,12 +299,13 @@ export async function getRegionTerms(region: RegionCode = DEFAULT_REGION): Promi
   if (!canUseTauri())
     return {}
 
+  await ensureRegionReady(region)
+
   if (regionTermsCache.has(region))
     return regionTermsCache.get(region) ?? {}
 
   let terms: RegionTerms
   try {
-    await ensureRegionReady(region)
     terms = await invoke<RegionTerms>('get_region_terms', {
       request: {
         region,
@@ -340,12 +335,13 @@ export async function getRegionStageCodes(
   if (!canUseTauri())
     return {}
 
+  await ensureRegionReady(region)
+
   if (regionStageCodeCache.has(region))
     return regionStageCodeCache.get(region) ?? {}
 
   let stageCodes: Record<string, string>
   try {
-    await ensureRegionReady(region)
     stageCodes = await invoke<Record<string, string>>('get_region_stage_codes', {
       request: {
         region,

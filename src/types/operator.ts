@@ -307,6 +307,7 @@ export type RegionCode = 'cn' | 'kr' | 'jp' | 'tw' | 'en'
 export interface RegionSyncStatus {
   region: RegionCode
   sourceRevision: string | null
+  sourceVersion: string | null
   fetchedAt: string | null
   operatorCount: number
   isReady: boolean
@@ -315,6 +316,7 @@ export interface RegionSyncStatus {
 export interface SyncResult {
   region: RegionCode
   sourceRevision: string
+  sourceVersion: string
   updatedAt: string
   operatorCount: number
   status: string

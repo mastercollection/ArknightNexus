@@ -52,6 +52,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::sync_region_data,
+            commands::ensure_region_fresh,
             commands::list_operators,
             commands::list_items,
             commands::list_building_formulas,

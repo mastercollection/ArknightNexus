@@ -87,6 +87,17 @@ pub async fn sync_region_data(
 }
 
 #[tauri::command]
+pub async fn ensure_region_fresh(
+    app: AppHandle,
+    request: SyncRegionRequest,
+) -> Result<SyncResult, String> {
+    let region = parse_region(&request.region)?;
+    service::ensure_region_fresh(&app, region)
+        .await
+        .map_err(map_error)
+}
+
+#[tauri::command]
 pub fn list_operators(
     app: AppHandle,
     request: ListOperatorsRequest,

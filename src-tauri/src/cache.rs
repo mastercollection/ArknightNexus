@@ -80,6 +80,7 @@ pub fn load_summary_snapshot(
         schema_version: REGION_SNAPSHOT_SCHEMA_VERSION,
         region: snapshot.region.clone(),
         source_revision: snapshot.source_revision.clone(),
+        source_version: snapshot.source_version.clone(),
         fetched_at: snapshot.fetched_at.clone(),
         operators: snapshot
             .operators
@@ -96,6 +97,7 @@ pub fn save_snapshot(
     app: &AppHandle,
     region: RegionCode,
     source_revision: &str,
+    source_version: &str,
     fetched_at: &str,
     stage_codes: &HashMap<String, String>,
     items: &[CachedItem],
@@ -107,6 +109,7 @@ pub fn save_snapshot(
         schema_version: REGION_SNAPSHOT_SCHEMA_VERSION,
         region: region.as_str().to_string(),
         source_revision: source_revision.to_string(),
+        source_version: Some(source_version.to_string()),
         fetched_at: fetched_at.to_string(),
         stage_codes: stage_codes.clone(),
         items: items.to_vec(),
@@ -138,6 +141,7 @@ pub fn save_snapshot(
         schema_version: REGION_SNAPSHOT_SCHEMA_VERSION,
         region: region.as_str().to_string(),
         source_revision: source_revision.to_string(),
+        source_version: Some(source_version.to_string()),
         fetched_at: fetched_at.to_string(),
         operators: operators.iter().map(cached_operator_to_summary).collect(),
     };
@@ -152,6 +156,7 @@ pub fn save_snapshot(
     let status = RegionSyncStatus {
         region: region.as_str().to_string(),
         source_revision: Some(source_revision.to_string()),
+        source_version: Some(source_version.to_string()),
         fetched_at: Some(fetched_at.to_string()),
         operator_count: operators.len(),
         is_ready: true,
@@ -216,6 +221,7 @@ fn load_region_status(app: &AppHandle, region: RegionCode) -> Result<RegionSyncS
         return Ok(RegionSyncStatus {
             region: region.as_str().to_string(),
             source_revision: None,
+            source_version: None,
             fetched_at: None,
             operator_count: 0,
             is_ready: false,

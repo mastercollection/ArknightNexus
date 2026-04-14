@@ -45,6 +45,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         .user_agent("ArknightsNexus/0.1.0")
         .build()?;
 
+    let data_version_url = descriptor.raw_url(&descriptor.data_version_path);
     let character_url = descriptor.raw_url(&descriptor.character_path);
     let skill_url = descriptor.raw_url(&descriptor.skill_path);
     let gamedata_const_url = descriptor.raw_url(&descriptor.gamedata_const_path);
@@ -57,6 +58,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
     let battle_equip_table_url = descriptor.raw_url(&descriptor.battle_equip_table_path);
     let favor_table_url = descriptor.raw_url(&descriptor.favor_table_path);
 
+    let data_version = fetch_data_version(&client, &data_version_url, region).await?;
     let character_payload = fetch_json(&client, &character_url).await?;
     let skill_payload = fetch_json(&client, &skill_url).await?;
     let gamedata_const_payload = fetch_json(&client, &gamedata_const_url).await?;
@@ -181,6 +183,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         app,
         region,
         &source_revision,
+        &data_version.version_control,
         &fetched_at,
         &stage_codes_by_id,
         &items,
@@ -193,9 +196,46 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
     Ok(SyncResult {
         region: region.as_str().to_string(),
         source_revision,
+        source_version: data_version.version_control,
         updated_at: fetched_at,
         operator_count: operators.len(),
         status: "success".to_string(),
+    })
+}
+
+pub async fn ensure_region_fresh(
+    app: &AppHandle,
+    region: RegionCode,
+) -> Result<SyncResult, AppError> {
+    let snapshot = match load_snapshot(app, region) {
+        Ok(snapshot) => snapshot,
+        Err(AppError::SnapshotMissing) => return sync_region_data(app, region).await,
+        Err(error) => return Err(error),
+    };
+
+    let cached_source_version = match snapshot.source_version.clone() {
+        Some(source_version) if !source_version.trim().is_empty() => source_version,
+        _ => return sync_region_data(app, region).await,
+    };
+
+    let descriptor = region.descriptor();
+    let client = reqwest::Client::builder()
+        .user_agent("ArknightsNexus/0.1.0")
+        .build()?;
+    let data_version_url = descriptor.raw_url(&descriptor.data_version_path);
+    let remote_version = fetch_data_version(&client, &data_version_url, region).await?;
+
+    if remote_version.version_control != cached_source_version {
+        return sync_region_data(app, region).await;
+    }
+
+    Ok(SyncResult {
+        region: region.as_str().to_string(),
+        source_revision: snapshot.source_revision,
+        source_version: cached_source_version,
+        updated_at: snapshot.fetched_at,
+        operator_count: snapshot.operators.len(),
+        status: "ready".to_string(),
     })
 }
 
@@ -363,6 +403,14 @@ struct FetchedJson {
     revision: Option<String>,
 }
 
+#[derive(Debug, Clone)]
+struct DataVersionInfo {
+    _stream: String,
+    _change: String,
+    _change_date: String,
+    version_control: String,
+}
+
 async fn fetch_json(client: &reqwest::Client, url: &str) -> Result<FetchedJson, AppError> {
     let response = client.get(url).send().await?.error_for_status()?;
     let revision = response
@@ -382,6 +430,83 @@ async fn fetch_json(client: &reqwest::Client, url: &str) -> Result<FetchedJson, 
     Ok(FetchedJson { body, revision })
 }
 
+async fn fetch_data_version(
+    client: &reqwest::Client,
+    url: &str,
+    region: RegionCode,
+) -> Result<DataVersionInfo, AppError> {
+    let body = client.get(url).send().await?.error_for_status()?.text().await?;
+    parse_data_version(&body, &format!("{} data_version.txt", region.as_str()))
+}
+
+fn parse_data_version(payload: &str, context: &str) -> Result<DataVersionInfo, AppError> {
+    let mut stream = None;
+    let mut change = None;
+    let mut change_date = None;
+    let mut version_control = None;
+
+    for line in payload.lines().map(str::trim).filter(|line| !line.is_empty()) {
+        if let Some(value) = line.strip_prefix("Stream:") {
+            stream = Some(value.trim().to_string());
+            continue;
+        }
+
+        if let Some(value) = line.strip_prefix("Change:") {
+            let normalized = value.trim();
+            let (change_value, change_date_value) = normalized
+                .split_once(" on ")
+                .ok_or_else(|| AppError::Parse {
+                    context: context.to_string(),
+                    path: "Change".to_string(),
+                    message: "expected `Change:<value> on <date>` format".to_string(),
+                })?;
+            change = Some(change_value.trim().to_string());
+            change_date = Some(change_date_value.trim().to_string());
+            continue;
+        }
+
+        if let Some(value) = line.strip_prefix("VersionControl:") {
+            version_control = Some(value.trim().to_string());
+        }
+    }
+
+    let stream = stream.ok_or_else(|| AppError::Parse {
+        context: context.to_string(),
+        path: "Stream".to_string(),
+        message: "missing Stream field".to_string(),
+    })?;
+    let change = change.ok_or_else(|| AppError::Parse {
+        context: context.to_string(),
+        path: "Change".to_string(),
+        message: "missing Change field".to_string(),
+    })?;
+    let change_date = change_date.ok_or_else(|| AppError::Parse {
+        context: context.to_string(),
+        path: "Change".to_string(),
+        message: "missing change date".to_string(),
+    })?;
+    let version_control = version_control.ok_or_else(|| AppError::Parse {
+        context: context.to_string(),
+        path: "VersionControl".to_string(),
+        message: "missing VersionControl field".to_string(),
+    })?;
+
+    if version_control.is_empty() {
+        return Err(AppError::Parse {
+            context: context.to_string(),
+            path: "VersionControl".to_string(),
+            message: "empty VersionControl field".to_string(),
+        });
+    }
+
+    Ok(DataVersionInfo {
+        _stream: stream,
+        _change: change,
+        _change_date: change_date,
+        version_control,
+    })
+}
+
 fn parse_json_with_path<T>(payload: &str, context: &str) -> Result<T, AppError>
 where
     T: DeserializeOwned,
@@ -392,6 +517,25 @@ where
         path: error.path().to_string(),
         message: error.inner().to_string(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_data_version;
+
+    #[test]
+    fn parses_data_version_payload() {
+        let parsed = parse_data_version(
+            "Stream://torappu-data/v068/rel68.0\nChange:100033 on 2025/12/09\nVersionControl:68.2.0\n",
+            "kr data_version.txt",
+        )
+        .expect("should parse data version");
+
+        assert_eq!(parsed._stream, "//torappu-data/v068/rel68.0");
+        assert_eq!(parsed._change, "100033");
+        assert_eq!(parsed._change_date, "2025/12/09");
+        assert_eq!(parsed.version_control, "68.2.0");
+    }
 }
 
 fn cached_summary_to_dto(operator: &CachedOperatorSummary) -> OperatorSummaryDto {
