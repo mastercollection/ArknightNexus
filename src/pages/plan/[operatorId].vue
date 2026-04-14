@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import type { BuildingFormulaBundle, ItemEntry, UserPlanOperator } from '~/types/operator'
-import { ArrowLeft, DocumentChecked } from '@element-plus/icons-vue'
+import { ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import ItemIcon from '~/components/ItemIcon.vue'
 import PlanMaterialsGrid from '~/components/PlanMaterialsGrid.vue'
-import { createEmptyBuildingFormulaBundle, loadPlanReferenceData } from '~/composables/usePlanReferenceData'
-import { useRegionPreference } from '~/composables'
+import { useAutoPersist, useRegionPreference } from '~/composables'
 import {
   calculatePlanCostsWithItems,
   estimatePlanFarming,
@@ -16,10 +15,10 @@ import {
   getPlanByOperatorId,
   resolvePlanOperator,
 } from '~/composables/usePlanCosts'
+import { createEmptyBuildingFormulaBundle, loadPlanReferenceData } from '~/composables/usePlanReferenceData'
 import {
   getOperatorById,
   getUserPlan,
-  listItems,
   resolveImageSource,
   saveUserPlanOperator,
 } from '~/services/operators'
@@ -28,11 +27,11 @@ const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 const { region } = useRegionPreference()
+const AUTOSAVE_DELAY_MS = 400
 
 const isLoading = ref(true)
 const isSaving = ref(false)
 const errorMessage = ref('')
-const saveState = ref<'idle' | 'success' | 'error'>('idle')
 const operator = ref<Awaited<ReturnType<typeof getOperatorById>>>()
 const localPlan = ref<UserPlanOperator>()
 const itemsById = ref<Record<string, ItemEntry>>({})
@@ -76,18 +75,57 @@ const targetEliteCap = computed(() =>
 const visibleModules = computed(() =>
   operator.value?.modules.filter(module => getModuleMaxStage(module.uniEquipId) > 0) ?? [],
 )
-const saveButtonClass = computed(() => {
-  if (saveState.value === 'success')
-    return 'text-[#7ee787] border-[rgba(126,231,135,0.28)] bg-[rgba(126,231,135,0.08)]'
+const operatorId = computed(() => String((route.params as { operatorId?: string }).operatorId ?? '').trim())
+const trackedPlanSignature = computed(() => buildTrackedPlanSignature(localPlan.value))
+const {
+  isPersisting: isAutoPersisting,
+  markPersisted: markPlanPersisted,
+} = useAutoPersist({
+  source: trackedPlanSignature,
+  delay: AUTOSAVE_DELAY_MS,
+  enabled: () => !isLoading.value && Boolean(localPlan.value),
+  persist: async () => {
+    if (!localPlan.value)
+      return localPlan.value
 
-  if (saveState.value === 'error')
-    return 'text-[#ffb3b3] border-[rgba(255,120,120,0.28)] bg-[rgba(255,120,120,0.08)]'
+    return saveUserPlanOperator(localPlan.value)
+  },
+  applyPersisted: (savedPlan) => {
+    if (!savedPlan)
+      return
 
-  return ''
+    localPlan.value = savedPlan
+  },
+  onError: (error) => {
+    ElMessage.error(String(error))
+  },
 })
 
-const operatorId = computed(() => String((route.params as { operatorId?: string }).operatorId ?? '').trim())
-let saveStateResetTimer: ReturnType<typeof setTimeout> | undefined
+function buildTrackedPlanSignature(plan?: UserPlanOperator) {
+  if (!plan)
+    return ''
+
+  return JSON.stringify({
+    current: {
+      elite: plan.current.elite,
+      level: plan.current.level,
+      skillLevels: plan.current.skillLevels,
+      modules: plan.current.modules.map(module => ({
+        moduleId: module.moduleId,
+        currentStage: module.currentStage,
+      })),
+    },
+    target: {
+      elite: plan.target.elite,
+      level: plan.target.level,
+      skillLevels: plan.target.skillLevels,
+      modules: plan.target.modules.map(module => ({
+        moduleId: module.moduleId,
+        targetStage: module.targetStage,
+      })),
+    },
+  })
+}
 
 async function loadDetailPage() {
   if (!operatorId.value) {
@@ -98,7 +136,6 @@ async function loadDetailPage() {
 
   isLoading.value = true
   errorMessage.value = ''
-  saveState.value = 'idle'
   detailExpandRecipes.value = false
 
   try {
@@ -111,12 +148,14 @@ async function loadDetailPage() {
     if (!detail) {
       operator.value = undefined
       localPlan.value = undefined
+      markPlanPersisted('')
       errorMessage.value = t('planPage.detail.notFoundDescription')
       return
     }
 
     operator.value = detail
     localPlan.value = resolvePlanOperator(detail, getPlanByOperatorId(plan, detail.id))
+    markPlanPersisted(trackedPlanSignature.value)
     itemsById.value = references.itemsById
     buildingFormulas.value = references.formulas
     await loadModuleTypeImageSources()
@@ -124,45 +163,14 @@ async function loadDetailPage() {
   catch (error) {
     operator.value = undefined
     localPlan.value = undefined
+    markPlanPersisted('')
     itemsById.value = {}
     buildingFormulas.value = createEmptyBuildingFormulaBundle()
     errorMessage.value = String(error)
   }
   finally {
     isLoading.value = false
-  }
-}
-
-async function savePlan() {
-  if (!localPlan.value)
-    return
-
-  isSaving.value = true
-
-  try {
-    localPlan.value = await saveUserPlanOperator(localPlan.value)
-    setSaveState('success')
-    ElMessage.success(t('planPage.detail.saved'))
-  }
-  catch (error) {
-    setSaveState('error')
-    ElMessage.error(String(error))
-  }
-  finally {
-    isSaving.value = false
-  }
-}
-
-function setSaveState(nextState: 'idle' | 'success' | 'error') {
-  saveState.value = nextState
-
-  if (saveStateResetTimer)
-    clearTimeout(saveStateResetTimer)
-
-  if (nextState !== 'idle') {
-    saveStateResetTimer = setTimeout(() => {
-      saveState.value = 'idle'
-    }, 1800)
+    await nextTick()
   }
 }
 
@@ -237,8 +245,16 @@ onMounted(() => {
   void loadDetailPage()
 })
 
+onBeforeUnmount(() => {
+  isSaving.value = false
+})
+
 watch([operatorId, region], () => {
   void loadDetailPage()
+})
+
+watch(isAutoPersisting, (nextValue) => {
+  isSaving.value = nextValue
 })
 </script>
 
@@ -257,12 +273,6 @@ export default {
       <template #left>
         <button type="button" class="top-bar-icon" @click="router.push('/plan')">
           <el-icon><ArrowLeft /></el-icon>
-        </button>
-      </template>
-
-      <template #right>
-        <button type="button" class="top-bar-icon" :class="saveButtonClass" :disabled="isSaving" @click="savePlan">
-          <el-icon><DocumentChecked /></el-icon>
         </button>
       </template>
     </TopBar>
@@ -406,7 +416,7 @@ export default {
                     v-if="moduleTypeIconSources[module.uniEquipId]"
                     :src="moduleTypeIconSources[module.uniEquipId]"
                     :alt="module.uniEquipName"
-                    class="mt-0.5 h-9 w-9 shrink-0 rounded-[12px] border border-[rgba(255,255,255,0.08)] bg-[rgba(7,18,36,0.85)] p-1.5 object-contain"
+                    class="mt-0.5 h-9 w-9 shrink-0 border border-[rgba(255,255,255,0.08)] rounded-[12px] bg-[rgba(7,18,36,0.85)] object-contain p-1.5"
                   >
                   <div class="grid gap-0.5">
                     <strong class="text-[0.94rem] text-white">{{ module.uniEquipName }}</strong>
@@ -517,7 +527,6 @@ export default {
                 {{ message }}
               </p>
             </div>
-
           </section>
 
           <section class="grid gap-3">

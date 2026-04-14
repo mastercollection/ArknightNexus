@@ -26,7 +26,7 @@ import potentialLevel6Icon from '~/assets/icons/potential/6.png'
 import masteryLevel8Icon from '~/assets/icons/skill/8.png'
 import masteryLevel9Icon from '~/assets/icons/skill/9.png'
 import masteryLevel10Icon from '~/assets/icons/skill/10.png'
-import { useOperatorDetailViewModel, useRegionPreference } from '~/composables'
+import { useAutoPersist, useOperatorDetailViewModel, useRegionPreference } from '~/composables'
 import { buildPotentialDiffDisplay } from '~/composables/usePotentialDiffDisplay'
 import { parseRichDescription } from '~/composables/useRichDescription'
 import {
@@ -144,6 +144,30 @@ const activeDetailPanels = ref<DetailSectionKey[]>([
   'skills',
 ])
 let sectionObserver: IntersectionObserver | null = null
+const {
+  markPersisted: markFavoritePersisted,
+  runWithoutTracking: runFavoriteWithoutTracking,
+} = useAutoPersist({
+  source: isFavorite,
+  delay: 250,
+  enabled: () => Boolean(operator.value?.id),
+  persist: async (desiredValue) => {
+    if (!operator.value)
+      return desiredValue
+
+    const persistedValue = await toggleOperatorFavorite(operator.value.id)
+    if (persistedValue === desiredValue)
+      return persistedValue
+
+    return toggleOperatorFavorite(operator.value.id)
+  },
+  applyPersisted: (persistedValue) => {
+    isFavorite.value = persistedValue
+  },
+  onError: () => {
+    ElMessage.info(t('operatorDetail.messages.favoriteFailed'))
+  },
+})
 const activeTermSegments = computed(() => parseRichDescription(activeTermDescription.value, []))
 const currentSectionLabel = computed(() => {
   const labels: Record<DetailSectionKey, string> = {
@@ -301,7 +325,10 @@ async function loadOperator() {
     operator.value = await getOperatorById(operatorId, region.value)
     regionTerms.value = await getRegionTerms(region.value)
     const favorites = await getUserFavorites()
-    isFavorite.value = favorites.includes(operatorId)
+    runFavoriteWithoutTracking(() => {
+      isFavorite.value = favorites.includes(operatorId)
+    })
+    markFavoritePersisted(isFavorite.value)
     if (operator.value?.id) {
       try {
         await prefetchImages([{
@@ -434,17 +461,7 @@ async function toggleFavorite() {
   if (!operator.value)
     return
 
-  try {
-    isFavorite.value = await toggleOperatorFavorite(operator.value.id)
-    ElMessage.success(
-      isFavorite.value
-        ? t('operatorDetail.messages.favoriteAdded')
-        : t('operatorDetail.messages.favoriteRemoved'),
-    )
-  }
-  catch {
-    ElMessage.info(t('operatorDetail.messages.favoriteFailed'))
-  }
+  isFavorite.value = !isFavorite.value
 }
 
 function buildRangeMatrix(range: OperatorRange | null | undefined): RangeMatrix | null {

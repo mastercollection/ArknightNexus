@@ -1,4 +1,5 @@
 export * from './dark'
+export * from './useAutoPersist'
 export * from './useInfiniteSlice'
 export * from './useOperatorDetailViewModel'
 export * from './useRegionPreference'
