@@ -16,6 +16,7 @@ const messages = {
     common: {
       confirm: '확인',
       cancel: '취소',
+      back: '뒤로가기',
     },
     profession: {
       vanguard: '뱅가드',
@@ -182,6 +183,9 @@ const messages = {
       },
       settings: {
         title: '홈 설정',
+        pageDescription: '앱 유지보수와 진단 정보를 한 곳에서 관리합니다.',
+        regionTitle: '지역 및 언어',
+        regionDescription: '데이터 조회와 번역에 사용할 기본 지역을 선택합니다.',
         syncStatusTitle: '현재 동기화 상태',
         syncReady: '준비됨',
         syncNeeded: '동기화 필요',
@@ -190,12 +194,27 @@ const messages = {
         userDataDescription: '즐겨찾기와 육성 계획이 담긴 user_data.json을 내보내거나 가져옵니다.',
         userDataExport: 'UserData 내보내기',
         userDataImport: 'UserData 가져오기',
+        diagnosticsTitle: '진단 정보',
+        diagnosticsDescriptionAndroid:
+          '안드로이드 크래시는 자동 수집될 수 있습니다. 기능 오류는 로그와 함께 제보해 주세요.',
+        diagnosticsDescriptionDesktop:
+          '윈도우에서는 로그 파일이 주요 진단 자료입니다. 문제가 생기면 로그를 함께 전달해 주세요.',
+        diagnosticsVersionLabel: '앱 버전',
+        diagnosticsPlatformLabel: '플랫폼',
+        diagnosticsPathLabel: '로그 폴더',
+        diagnosticsOpenLogs: '로그 폴더 열기',
+        diagnosticsExportLogs: '최신 로그 내보내기',
         morePending: '추가 설정은 준비 중',
       },
       messages: {
         settingsPending: '세부 설정 화면은 준비 중입니다.',
+        syncCompleted: '동기화를 완료했습니다.',
         userDataExported: 'UserData를 내보냈습니다.',
         userDataImported: 'UserData를 가져왔습니다.',
+        logsOpened: '로그 폴더를 열었습니다.',
+        logsExported: '최신 로그를 Downloads/{file} 로 내보냈습니다.',
+        logsOpenFailed: '로그 폴더를 열지 못했습니다. 아래 경로를 확인해 주세요.',
+        logsExportFailed: '로그 파일을 내보내지 못했습니다. 로그 경로를 확인해 주세요.',
         userDataImportConfirm:
           '현재 UserData를 백업한 뒤 가져온 파일로 덮어씁니다. 계속하시겠습니까?',
       },
@@ -347,6 +366,7 @@ const messages = {
     common: {
       confirm: '确认',
       cancel: '取消',
+      back: '返回',
     },
     profession: {
       vanguard: '先锋',
@@ -517,6 +537,9 @@ const messages = {
       },
       settings: {
         title: '首页设置',
+        pageDescription: '在一个页面中管理应用维护与诊断信息。',
+        regionTitle: '地区与语言',
+        regionDescription: '选择数据查询和翻译使用的默认地区。',
         syncStatusTitle: '当前同步状态',
         syncReady: '已就绪',
         syncNeeded: '需要同步',
@@ -525,12 +548,25 @@ const messages = {
         userDataDescription: '导出或导入包含收藏与养成计划的 user_data.json。',
         userDataExport: '导出 UserData',
         userDataImport: '导入 UserData',
+        diagnosticsTitle: '诊断信息',
+        diagnosticsDescriptionAndroid: 'Android 崩溃可能会自动收集，功能异常请连同日志一起反馈。',
+        diagnosticsDescriptionDesktop: 'Windows 主要依赖日志文件排查问题，发生异常时请一并提供日志。',
+        diagnosticsVersionLabel: '应用版本',
+        diagnosticsPlatformLabel: '平台',
+        diagnosticsPathLabel: '日志目录',
+        diagnosticsOpenLogs: '打开日志目录',
+        diagnosticsExportLogs: '导出最新日志',
         morePending: '更多设置准备中',
       },
       messages: {
         settingsPending: '详细设置界面仍在准备中。',
+        syncCompleted: '同步已完成。',
         userDataExported: '已导出 UserData。',
         userDataImported: '已导入 UserData。',
+        logsOpened: '已打开日志目录。',
+        logsExported: '已将最新日志导出到 Downloads/{file}。',
+        logsOpenFailed: '无法打开日志目录。请查看下面的路径。',
+        logsExportFailed: '无法导出日志文件。请检查日志路径。',
         userDataImportConfirm: '将先备份当前 UserData，再用所选文件覆盖。要继续吗？',
       },
     },
@@ -621,6 +657,7 @@ const messages = {
     common: {
       confirm: '確認',
       cancel: 'キャンセル',
+      back: '戻る',
     },
     profession: {
       vanguard: '先鋒',
@@ -792,6 +829,9 @@ const messages = {
       },
       settings: {
         title: 'ホーム設定',
+        pageDescription: 'アプリの保守設定と診断情報をまとめて管理します。',
+        regionTitle: '地域と言語',
+        regionDescription: 'データ参照と翻訳に使う既定の地域を選択します。',
         syncStatusTitle: '現在の同期状態',
         syncReady: '準備完了',
         syncNeeded: '同期が必要',
@@ -801,12 +841,27 @@ const messages = {
           'お気に入りと育成計画を含む user_data.json をエクスポートまたはインポートします。',
         userDataExport: 'UserData をエクスポート',
         userDataImport: 'UserData をインポート',
+        diagnosticsTitle: '診断情報',
+        diagnosticsDescriptionAndroid:
+          'Android のクラッシュは自動収集される場合があります。機能不具合はログと一緒に共有してください。',
+        diagnosticsDescriptionDesktop:
+          'Windows ではログファイルが主な診断手段です。問題が起きたらログも一緒に送ってください。',
+        diagnosticsVersionLabel: 'アプリバージョン',
+        diagnosticsPlatformLabel: 'プラットフォーム',
+        diagnosticsPathLabel: 'ログフォルダ',
+        diagnosticsOpenLogs: 'ログフォルダを開く',
+        diagnosticsExportLogs: '最新ログをエクスポート',
         morePending: '追加設定は準備中',
       },
       messages: {
         settingsPending: '詳細設定画面は準備中です。',
+        syncCompleted: '同期が完了しました。',
         userDataExported: 'UserData をエクスポートしました。',
         userDataImported: 'UserData をインポートしました。',
+        logsOpened: 'ログフォルダを開きました。',
+        logsExported: '最新ログを Downloads/{file} にエクスポートしました。',
+        logsOpenFailed: 'ログフォルダを開けませんでした。下のパスを確認してください。',
+        logsExportFailed: 'ログファイルをエクスポートできませんでした。ログパスを確認してください。',
         userDataImportConfirm:
           '現在の UserData をバックアップした後、選択したファイルで上書きします。続行しますか？',
       },
@@ -898,6 +953,7 @@ const messages = {
     common: {
       confirm: '確認',
       cancel: '取消',
+      back: '返回',
     },
     profession: {
       vanguard: '先鋒',
@@ -1068,6 +1124,9 @@ const messages = {
       },
       settings: {
         title: '首頁設定',
+        pageDescription: '在同一頁面管理 App 維護與診斷資訊。',
+        regionTitle: '地區與語言',
+        regionDescription: '選擇資料查詢與翻譯使用的預設地區。',
         syncStatusTitle: '目前同步狀態',
         syncReady: '已就緒',
         syncNeeded: '需要同步',
@@ -1076,12 +1135,27 @@ const messages = {
         userDataDescription: '匯出或匯入包含收藏與養成計畫的 user_data.json。',
         userDataExport: '匯出 UserData',
         userDataImport: '匯入 UserData',
+        diagnosticsTitle: '診斷資訊',
+        diagnosticsDescriptionAndroid:
+          'Android 當機可能會自動收集，功能異常請連同日誌一起回報。',
+        diagnosticsDescriptionDesktop:
+          'Windows 主要依賴日誌檔案排查問題，發生異常時請一併提供日誌。',
+        diagnosticsVersionLabel: 'App 版本',
+        diagnosticsPlatformLabel: '平台',
+        diagnosticsPathLabel: '日誌資料夾',
+        diagnosticsOpenLogs: '開啟日誌資料夾',
+        diagnosticsExportLogs: '匯出最新日誌',
         morePending: '更多設定準備中',
       },
       messages: {
         settingsPending: '詳細設定畫面仍在準備中。',
+        syncCompleted: '同步已完成。',
         userDataExported: '已匯出 UserData。',
         userDataImported: '已匯入 UserData。',
+        logsOpened: '已開啟日誌資料夾。',
+        logsExported: '已將最新日誌匯出到 Downloads/{file}。',
+        logsOpenFailed: '無法開啟日誌資料夾。請查看下面的路徑。',
+        logsExportFailed: '無法匯出日誌檔案。請檢查日誌路徑。',
         userDataImportConfirm: '將先備份目前的 UserData，再以所選檔案覆蓋。要繼續嗎？',
       },
     },
@@ -1172,6 +1246,7 @@ const messages = {
     common: {
       confirm: 'Confirm',
       cancel: 'Cancel',
+      back: 'Back',
     },
     profession: {
       vanguard: 'Vanguard',
@@ -1343,6 +1418,9 @@ const messages = {
       },
       settings: {
         title: 'Home Settings',
+        pageDescription: 'Manage maintenance actions and diagnostics in one place.',
+        regionTitle: 'Region and Language',
+        regionDescription: 'Choose the default region used for data and translations.',
         syncStatusTitle: 'Current Sync Status',
         syncReady: 'Ready',
         syncNeeded: 'Need Sync',
@@ -1352,12 +1430,27 @@ const messages = {
           'Export or import the user_data.json file that stores favorites and plan data.',
         userDataExport: 'Export UserData',
         userDataImport: 'Import UserData',
+        diagnosticsTitle: 'Diagnostics',
+        diagnosticsDescriptionAndroid:
+          'Android crashes may be collected automatically. Please report feature issues together with the log files.',
+        diagnosticsDescriptionDesktop:
+          'On Windows, log files are the primary diagnostic source. Share them when reporting issues.',
+        diagnosticsVersionLabel: 'App Version',
+        diagnosticsPlatformLabel: 'Platform',
+        diagnosticsPathLabel: 'Log Folder',
+        diagnosticsOpenLogs: 'Open Log Folder',
+        diagnosticsExportLogs: 'Export Latest Log',
         morePending: 'More settings are coming soon',
       },
       messages: {
         settingsPending: 'Detailed settings are still in progress.',
+        syncCompleted: 'Sync completed.',
         userDataExported: 'UserData exported.',
         userDataImported: 'UserData imported.',
+        logsOpened: 'Opened the log folder.',
+        logsExported: 'Exported the latest log to Downloads/{file}.',
+        logsOpenFailed: 'Could not open the log folder. Check the path below.',
+        logsExportFailed: 'Could not export the log file. Check the log path.',
         userDataImportConfirm:
           'The current UserData will be backed up and replaced with the selected file. Continue?',
       },

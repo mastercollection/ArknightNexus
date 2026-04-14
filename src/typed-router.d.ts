@@ -26,6 +26,7 @@ declare module 'vue-router/auto-routes' {
     '/plan': RouteRecordInfo<'/plan', '/plan', Record<never, never>, Record<never, never>, '/plan/' | '/plan/[operatorId]'>,
     '/plan/': RouteRecordInfo<'/plan/', '/plan', Record<never, never>, Record<never, never>>,
     '/plan/[operatorId]': RouteRecordInfo<'/plan/[operatorId]', '/plan/:operatorId', { operatorId: ParamValue<true> }, { operatorId: ParamValue<false> }>,
+    '/settings': RouteRecordInfo<'/settings', '/settings', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -69,6 +70,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/plan/[operatorId].vue': {
       routes: '/plan/[operatorId]'
+      views: never
+    }
+    'src/pages/settings.vue': {
+      routes: '/settings'
       views: never
     }
   }

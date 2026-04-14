@@ -1,16 +1,13 @@
 <script setup lang="ts">
 import type { OperatorSummary, RegionSyncStatus } from '~/types/operator'
 import { RefreshRight, Search, Setting } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useRegionPreference } from '~/composables'
 import {
-  exportUserDataFile,
   getFeaturedOperators,
   getRegionSyncStatus,
-  importUserDataFile,
   syncRegionData,
 } from '~/services/operators'
 
@@ -22,9 +19,6 @@ const featuredOperators = ref<OperatorSummary[]>([])
 const syncStatus = ref<RegionSyncStatus | null>(null)
 const isLoading = ref(true)
 const errorMessage = ref('')
-const settingsOpen = ref(false)
-const userDataBusy = ref(false)
-const globeIcon = new URL('../assets/icons/globe.svg', import.meta.url).href
 const appIcon = new URL('../assets/icons/app/nexus-beacon.svg', import.meta.url).href
 
 const menuItems = computed(() => [
@@ -80,10 +74,12 @@ async function loadHome() {
     ])
 
     featuredOperators.value = featured
-    syncStatus.value = statuses.find((status) => status.region === region.value) ?? null
-  } catch (error) {
+    syncStatus.value = statuses.find(status => status.region === region.value) ?? null
+  }
+  catch (error) {
     errorMessage.value = String(error)
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -95,18 +91,19 @@ async function forceSync() {
   try {
     await syncRegionData(region.value)
     await loadHome()
-  } catch (error) {
+  }
+  catch (error) {
     errorMessage.value = String(error)
     isLoading.value = false
   }
 }
 
 onMounted(() => {
-  loadHome()
+  void loadHome()
 })
 
 watch(region, () => {
-  loadHome()
+  void loadHome()
 })
 
 function handleRegionChange(nextRegion: string | number | boolean) {
@@ -114,56 +111,7 @@ function handleRegionChange(nextRegion: string | number | boolean) {
 }
 
 function openSettings() {
-  settingsOpen.value = true
-}
-
-function handleSettingsSync() {
-  settingsOpen.value = false
-  forceSync()
-}
-
-function notifySettingsPending() {
-  ElMessage.info(t('home.messages.settingsPending'))
-}
-
-async function handleExportUserData() {
-  userDataBusy.value = true
-
-  try {
-    const exported = await exportUserDataFile()
-    if (exported) ElMessage.success(t('home.messages.userDataExported'))
-  } catch (error) {
-    ElMessage.error(String(error))
-  } finally {
-    userDataBusy.value = false
-  }
-}
-
-async function handleImportUserData() {
-  try {
-    await ElMessageBox.confirm(
-      t('home.messages.userDataImportConfirm'),
-      t('home.settings.userDataImport'),
-      {
-        confirmButtonText: t('common.confirm'),
-        cancelButtonText: t('common.cancel'),
-        type: 'warning',
-      },
-    )
-  } catch {
-    return
-  }
-
-  userDataBusy.value = true
-
-  try {
-    const imported = await importUserDataFile()
-    if (imported) ElMessage.success(t('home.messages.userDataImported'))
-  } catch (error) {
-    ElMessage.error(String(error))
-  } finally {
-    userDataBusy.value = false
-  }
+  void router.push('/settings')
 }
 </script>
 
@@ -182,7 +130,7 @@ export default {
           class="inline-flex items-center gap-2.5 border-0 bg-transparent p-0 text-white"
           @click="router.push('/')"
         >
-          <img :src="appIcon" alt="" class="h-7 w-7 shrink-0 rounded-[8px]" />
+          <img :src="appIcon" alt="" class="h-7 w-7 shrink-0 rounded-[8px]">
           <strong>Arknights Nexus</strong>
         </button>
       </template>
@@ -251,79 +199,4 @@ export default {
       </div>
     </section>
   </section>
-
-  <el-drawer v-model="settingsOpen" direction="rtl" size="min(88vw, 24rem)" :with-header="false">
-    <div class="grid gap-4 p-4">
-      <div class="grid gap-1">
-        <p class="eyebrow m-0">App Controls</p>
-        <h2 class="m-0 text-[1.2rem] font-700">
-          {{ t('home.settings.title') }}
-        </h2>
-      </div>
-
-      <div class="grid gap-2">
-        <div
-          class="flex items-center gap-2 border border-soft rounded-pill bg-[rgba(255,255,255,0.03)] px-2.5 py-2"
-        >
-          <span
-            class="h-8 w-8 inline-flex flex-none items-center justify-center rounded-full bg-[rgba(109,169,255,0.12)] text-[rgba(214,229,255,0.86)]"
-          >
-            <img :src="globeIcon" alt="" class="h-[18px] w-[18px] opacity-92" />
-          </span>
-          <el-select
-            :model-value="region"
-            class="min-w-0 flex-1"
-            aria-label="Region / Locale"
-            @update:model-value="handleRegionChange"
-          >
-            <el-option
-              v-for="option in regionOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </div>
-      </div>
-
-      <div class="grid gap-2 rounded-card bg-[rgba(255,255,255,0.04)] p-4">
-        <strong>{{ t('home.settings.syncStatusTitle') }}</strong>
-        <p class="muted-copy">
-          {{ syncStatus?.isReady ? t('home.settings.syncReady') : t('home.settings.syncNeeded') }}
-        </p>
-        <button type="button" class="action-btn" @click="handleSettingsSync">
-          {{ t('home.settings.syncAction') }}
-        </button>
-      </div>
-
-      <div class="grid gap-2 rounded-card bg-[rgba(255,255,255,0.04)] p-4">
-        <strong>{{ t('home.settings.userDataTitle') }}</strong>
-        <p class="muted-copy">
-          {{ t('home.settings.userDataDescription') }}
-        </p>
-        <div class="grid gap-2 sm:grid-cols-2">
-          <button
-            type="button"
-            class="action-btn"
-            :disabled="userDataBusy"
-            @click="handleExportUserData"
-          >
-            {{ t('home.settings.userDataExport') }}
-          </button>
-          <button
-            type="button"
-            class="action-btn"
-            :disabled="userDataBusy"
-            @click="handleImportUserData"
-          >
-            {{ t('home.settings.userDataImport') }}
-          </button>
-        </div>
-      </div>
-
-      <button type="button" class="action-btn" @click="notifySettingsPending">
-        {{ t('home.settings.morePending') }}
-      </button>
-    </div>
-  </el-drawer>
 </template>
