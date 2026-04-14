@@ -405,9 +405,9 @@ struct FetchedJson {
 
 #[derive(Debug, Clone)]
 struct DataVersionInfo {
-    _stream: String,
-    _change: String,
-    _change_date: String,
+    _stream: Option<String>,
+    _change: Option<String>,
+    _change_date: Option<String>,
     version_control: String,
 }
 
@@ -445,24 +445,45 @@ fn parse_data_version(payload: &str, context: &str) -> Result<DataVersionInfo, A
     let mut change_date = None;
     let mut version_control = None;
 
-    for line in payload.lines().map(str::trim).filter(|line| !line.is_empty()) {
+    for line in payload
+        .lines()
+        .map(|line| line.trim().trim_start_matches('\u{feff}'))
+        .filter(|line| !line.is_empty())
+    {
         if let Some(value) = line.strip_prefix("Stream:") {
-            stream = Some(value.trim().to_string());
+            let value = value.trim();
+            if !value.is_empty() {
+                stream = Some(value.to_string());
+            }
             continue;
         }
 
         if let Some(value) = line.strip_prefix("Change:") {
             let normalized = value.trim();
-            let (change_value, change_date_value) = normalized
-                .split_once(" on ")
-                .ok_or_else(|| AppError::Parse {
-                    context: context.to_string(),
-                    path: "Change".to_string(),
-                    message: "expected `Change:<value> on <date>` format".to_string(),
-                })?;
-            change = Some(change_value.trim().to_string());
-            change_date = Some(change_date_value.trim().to_string());
-            continue;
+            if normalized.is_empty() {
+                continue;
+            }
+            let tokens = normalized.split_whitespace().collect::<Vec<_>>();
+            if tokens.len() >= 3 && tokens[1].eq_ignore_ascii_case("on") {
+                let change_value = tokens[0].trim();
+                let change_date_value = tokens[2..].join(" ");
+
+                if !change_value.is_empty() {
+                    change = Some(change_value.to_string());
+                }
+                if !change_date_value.trim().is_empty() {
+                    change_date = Some(change_date_value);
+                }
+                continue;
+            }
+
+            return Err(AppError::Parse {
+                context: context.to_string(),
+                path: "Change".to_string(),
+                message: format!(
+                    "expected `Change:<value> on <date>` format, got `{normalized}`"
+                ),
+            });
         }
 
         if let Some(value) = line.strip_prefix("VersionControl:") {
@@ -470,21 +491,6 @@ fn parse_data_version(payload: &str, context: &str) -> Result<DataVersionInfo, A
         }
     }
 
-    let stream = stream.ok_or_else(|| AppError::Parse {
-        context: context.to_string(),
-        path: "Stream".to_string(),
-        message: "missing Stream field".to_string(),
-    })?;
-    let change = change.ok_or_else(|| AppError::Parse {
-        context: context.to_string(),
-        path: "Change".to_string(),
-        message: "missing Change field".to_string(),
-    })?;
-    let change_date = change_date.ok_or_else(|| AppError::Parse {
-        context: context.to_string(),
-        path: "Change".to_string(),
-        message: "missing change date".to_string(),
-    })?;
     let version_control = version_control.ok_or_else(|| AppError::Parse {
         context: context.to_string(),
         path: "VersionControl".to_string(),
@@ -531,10 +537,38 @@ mod tests {
         )
         .expect("should parse data version");
 
-        assert_eq!(parsed._stream, "//torappu-data/v068/rel68.0");
-        assert_eq!(parsed._change, "100033");
-        assert_eq!(parsed._change_date, "2025/12/09");
+        assert_eq!(parsed._stream.as_deref(), Some("//torappu-data/v068/rel68.0"));
+        assert_eq!(parsed._change.as_deref(), Some("100033"));
+        assert_eq!(parsed._change_date.as_deref(), Some("2025/12/09"));
         assert_eq!(parsed.version_control, "68.2.0");
+    }
+
+    #[test]
+    fn parses_data_version_payload_with_bom_and_extra_spacing() {
+        let parsed = parse_data_version(
+            "\u{feff}Stream://torappu-data/v068/rel68.0\nChange:100033   on   2025/12/09\nVersionControl:68.2.0\n",
+            "kr data_version.txt",
+        )
+        .expect("should parse data version with bom and extra spacing");
+
+        assert_eq!(parsed._stream.as_deref(), Some("//torappu-data/v068/rel68.0"));
+        assert_eq!(parsed._change.as_deref(), Some("100033"));
+        assert_eq!(parsed._change_date.as_deref(), Some("2025/12/09"));
+        assert_eq!(parsed.version_control, "68.2.0");
+    }
+
+    #[test]
+    fn parses_data_version_payload_with_empty_stream_and_change() {
+        let parsed = parse_data_version(
+            "Stream:\nChange:\nVersionControl:49.0.0\n",
+            "kr data_version.txt",
+        )
+        .expect("should parse data version when optional fields are empty");
+
+        assert_eq!(parsed._stream, None);
+        assert_eq!(parsed._change, None);
+        assert_eq!(parsed._change_date, None);
+        assert_eq!(parsed.version_control, "49.0.0");
     }
 }
 
