@@ -1,4 +1,3 @@
-import { getCurrentWindow } from '@tauri-apps/api/window'
 import { attachConsole } from '@tauri-apps/plugin-log'
 
 import ElementPlus from 'element-plus'
@@ -19,6 +18,14 @@ const RouterLayout = createRouterLayout((layout: any) => {
   return import(`./layouts/${layout}.vue`)
 })
 
+function isAndroidTauriWebView() {
+  if (typeof window === 'undefined' || !('__TAURI_INTERNALS__' in window) || typeof navigator === 'undefined')
+    return false
+
+  const userAgent = navigator.userAgent
+  return /Android/i.test(userAgent) && /\bwv\b/i.test(userAgent)
+}
+
 if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
   void attachConsole()
 }
@@ -35,13 +42,9 @@ const router = createRouter({
   ],
 })
 
-if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
-  void getCurrentWindow().onCloseRequested((event) => {
-    const historyState = window.history.state as { back?: string | null } | null
-    if (historyState?.back) {
-      event.preventDefault()
-      void router.back()
-    }
+if (isAndroidTauriWebView()) {
+  void import('~/services/androidBack').then(({ initializeAndroidBackHandler }) => {
+    void initializeAndroidBackHandler(router)
   })
 }
 

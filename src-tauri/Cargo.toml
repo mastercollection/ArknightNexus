@@ -23,6 +23,7 @@ tauri-build = { version = "2.4.1", features = [] }
 
 [dependencies]
 tauri = { version = "2.8.5", features = ["protocol-asset"] }
+tauri-plugin-android-back = { path = "plugins/tauri-plugin-android-back" }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-log = "2"
