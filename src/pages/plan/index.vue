@@ -6,15 +6,14 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import ItemIcon from '~/components/ItemIcon.vue'
 import PlanMaterialsGrid from '~/components/PlanMaterialsGrid.vue'
-import { loadPlanReferenceData, createEmptyBuildingFormulaBundle } from '~/composables/usePlanReferenceData'
 import { useRegionPreference } from '~/composables'
 import { aggregatePlanCostsWithItems, estimatePlanFarming, getPlanByOperatorId, resolvePlanOperator } from '~/composables/usePlanCosts'
+import { createEmptyBuildingFormulaBundle, loadPlanReferenceData } from '~/composables/usePlanReferenceData'
 import { translateProfession } from '~/i18n'
 import {
   getOperatorById,
   getUserFavorites,
   getUserPlan,
-  listItems,
   listOperators,
   removeUserPlanOperator,
   saveUserPlanSelection,
@@ -302,7 +301,7 @@ export default {
       />
     </section>
 
-    <section v-if="errorMessage" class="grid gap-2.5 rounded-panel panel-soft p-4">
+    <section v-if="errorMessage" class="grid gap-2.5 panel-soft rounded-panel p-4">
       <p class="m-0 text-[rgba(215,223,239,0.75)]">
         {{ t('planPage.states.errorTitle') }}
       </p>
@@ -314,13 +313,13 @@ export default {
       </button>
     </section>
 
-    <section v-else-if="isLoading" class="grid gap-3 rounded-panel panel-soft p-4">
+    <section v-else-if="isLoading" class="grid gap-3 panel-soft rounded-panel p-4">
       <div class="h-5 w-[36%] animate-pulse rounded-full bg-[rgba(255,255,255,0.08)]" />
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         <article
           v-for="index in 4"
           :key="index"
-          class="grid animate-pulse gap-2 rounded-panel panel-soft p-3"
+          class="grid animate-pulse gap-2 panel-soft rounded-panel p-3"
         >
           <div class="relative mx-auto w-fit">
             <div class="h-[84px] w-[84px] rounded-[24px] bg-[rgba(255,255,255,0.06)]" />
@@ -332,7 +331,7 @@ export default {
 
     <template v-else>
       <section v-if="activeTab === 'operators'" class="grid gap-4">
-        <section class="grid gap-3 rounded-panel panel-soft p-4">
+        <section class="grid gap-3 panel-soft rounded-panel p-4">
           <div class="flex items-center justify-between gap-3">
             <div class="grid gap-1">
               <h2 class="m-0 text-[1.02rem] text-white font-700 tracking-[-0.02em]">
@@ -344,11 +343,11 @@ export default {
             </div>
           </div>
 
-          <div v-if="selectedOperators.length" class="grid grid-cols-3 gap-3.5 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div v-if="selectedOperators.length" class="grid grid-cols-3 gap-3.5 lg:grid-cols-5 sm:grid-cols-4 xl:grid-cols-6">
             <article
               v-for="operator in selectedOperators"
               :key="operator.id"
-              class="grid content-start gap-2 rounded-panel panel-soft p-3"
+              class="grid content-start gap-2 panel-soft rounded-panel p-3"
               :class="selectionMode && pendingRemovalIds.includes(operator.id) ? 'border-[rgba(255,120,120,0.4)] bg-[rgba(120,20,28,0.2)]' : selectionMode ? 'border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)]' : ''"
             >
               <button
@@ -359,7 +358,7 @@ export default {
                 <div class="relative mx-auto w-fit">
                   <span
                     v-if="selectionMode"
-                    class="absolute right-1 top-1 z-3 inline-flex h-6 w-6 items-center justify-center rounded-full border text-[0.82rem]"
+                    class="absolute right-1 top-1 z-3 h-6 w-6 inline-flex items-center justify-center border rounded-full text-[0.82rem]"
                     :class="pendingRemovalIds.includes(operator.id) ? 'border-[rgba(255,120,120,0.38)] bg-[rgba(255,120,120,0.18)] text-[#ffb3b3]' : 'border-[rgba(255,255,255,0.12)] bg-[rgba(10,15,30,0.82)] text-[rgba(191,201,220,0.72)]'"
                   >
                     <el-icon><Check /></el-icon>
@@ -374,12 +373,12 @@ export default {
             </article>
           </div>
 
-          <div v-else-if="favoriteOperators.length" class="grid grid-cols-3 gap-3.5 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div v-else-if="favoriteOperators.length" class="grid grid-cols-3 gap-3.5 lg:grid-cols-5 sm:grid-cols-4 xl:grid-cols-6">
             <button
               v-for="operator in favoriteOperators"
               :key="operator.id"
               type="button"
-              class="grid content-start gap-2 rounded-panel panel-soft p-3 text-left text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-[rgba(133,182,255,0.45)]"
+              class="grid content-start gap-2 panel-soft rounded-panel p-3 text-left text-white transition-all duration-200 hover:border-[rgba(133,182,255,0.45)] hover:-translate-y-0.5"
               @click="addOperator(operator.id)"
             >
               <div class="relative mx-auto w-fit">
@@ -404,7 +403,7 @@ export default {
       </section>
 
       <section v-else class="grid gap-4">
-        <section v-if="summaryErrorMessage" class="grid gap-2.5 rounded-panel panel-soft p-4">
+        <section v-if="summaryErrorMessage" class="grid gap-2.5 panel-soft rounded-panel p-4">
           <p class="m-0 text-[rgba(215,223,239,0.75)]">
             {{ t('planPage.summary.errorTitle') }}
           </p>
@@ -413,7 +412,7 @@ export default {
           </p>
         </section>
 
-        <section v-else-if="summaryLoading" class="grid gap-3 rounded-panel panel-soft p-4">
+        <section v-else-if="summaryLoading" class="grid gap-3 panel-soft rounded-panel p-4">
           <div class="h-5 w-[36%] animate-pulse rounded-full bg-[rgba(255,255,255,0.08)]" />
           <div class="grid gap-3 sm:grid-cols-3">
             <div v-for="index in 3" :key="index" class="h-[96px] animate-pulse rounded-panel bg-[rgba(255,255,255,0.05)]" />
@@ -428,7 +427,7 @@ export default {
             </article>
 
             <div class="grid grid-cols-2 gap-3">
-              <article v-if="showSummaryExp" class="grid gap-1.5 rounded-panel panel-soft p-3 text-center">
+              <article v-if="showSummaryExp" class="grid gap-1.5 panel-soft rounded-panel p-3 text-center">
                 <span class="eyebrow">{{ t('planPage.summary.expLabel') }}</span>
                 <button
                   type="button"
@@ -443,7 +442,7 @@ export default {
                 </button>
                 <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(summaryFarming.exp) }}</strong>
               </article>
-              <article v-if="showSummaryLmd" class="grid gap-1.5 rounded-panel panel-soft p-3 text-center">
+              <article v-if="showSummaryLmd" class="grid gap-1.5 panel-soft rounded-panel p-3 text-center">
                 <span class="eyebrow">{{ t('planPage.summary.lmdLabel') }}</span>
                 <button
                   type="button"
@@ -476,7 +475,7 @@ export default {
             </article>
           </section>
 
-          <section v-if="showSummaryResourceOverview" class="grid gap-3 rounded-panel panel-soft p-4">
+          <section v-if="showSummaryResourceOverview" class="grid gap-3 panel-soft rounded-panel p-4">
             <div class="grid gap-1">
               <h2 class="m-0 text-[1rem] text-white font-700">
                 {{ t('planPage.summary.farmingTitle') }}
@@ -501,7 +500,7 @@ export default {
             </div>
           </section>
 
-          <section v-if="summaryTotals.errors.length" class="grid gap-2 rounded-panel panel-soft p-4">
+          <section v-if="summaryTotals.errors.length" class="grid gap-2 panel-soft rounded-panel p-4">
             <h2 class="m-0 text-[1rem] text-white font-700">
               {{ t('planPage.summary.validationTitle') }}
             </h2>
@@ -539,7 +538,7 @@ export default {
             <article
               v-for="entry in summaryEntries"
               :key="entry.detail.id"
-              class="grid gap-3 rounded-panel panel-soft p-4"
+              class="grid gap-3 panel-soft rounded-panel p-4"
             >
               <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
@@ -601,7 +600,7 @@ export default {
             v-for="operator in pickerOperators"
             :key="operator.id"
             type="button"
-            class="flex items-center gap-3 rounded-panel panel-soft p-3 text-left text-white transition-all duration-200 hover:border-[rgba(133,182,255,0.45)]"
+            class="flex items-center gap-3 panel-soft rounded-panel p-3 text-left text-white transition-all duration-200 hover:border-[rgba(133,182,255,0.45)]"
             @click="addOperator(operator.id)"
           >
             <OperatorPortrait
