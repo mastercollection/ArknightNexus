@@ -41,58 +41,36 @@ impl RegionCode {
         SourceDescriptor {
             repo: "https://github.com/ArknightsAssets/ArknightsGamedata",
             branch: "master",
-            character_path: Box::leak(
-                format!("{region}/gamedata/excel/character_table.json").into_boxed_str(),
-            ),
-            skill_path: Box::leak(
-                format!("{region}/gamedata/excel/skill_table.json").into_boxed_str(),
-            ),
-            gamedata_const_path: Box::leak(
-                format!("{region}/gamedata/excel/gamedata_const.json").into_boxed_str(),
-            ),
-            uniequip_path: Box::leak(
-                format!("{region}/gamedata/excel/uniequip_table.json").into_boxed_str(),
-            ),
-            handbook_team_path: Box::leak(
-                format!("{region}/gamedata/excel/handbook_team_table.json").into_boxed_str(),
-            ),
-            range_table_path: Box::leak(
-                format!("{region}/gamedata/excel/range_table.json").into_boxed_str(),
-            ),
-            item_table_path: Box::leak(
-                format!("{region}/gamedata/excel/item_table.json").into_boxed_str(),
-            ),
-            stage_table_path: Box::leak(
-                format!("{region}/gamedata/excel/stage_table.json").into_boxed_str(),
-            ),
-            building_data_path: Box::leak(
-                format!("{region}/gamedata/excel/building_data.json").into_boxed_str(),
-            ),
-            battle_equip_table_path: Box::leak(
-                format!("{region}/gamedata/excel/battle_equip_table.json").into_boxed_str(),
-            ),
-            favor_table_path: Box::leak(
-                format!("{region}/gamedata/excel/favor_table.json").into_boxed_str(),
-            ),
+            character_path: format!("{region}/gamedata/excel/character_table.json"),
+            skill_path: format!("{region}/gamedata/excel/skill_table.json"),
+            gamedata_const_path: format!("{region}/gamedata/excel/gamedata_const.json"),
+            uniequip_path: format!("{region}/gamedata/excel/uniequip_table.json"),
+            handbook_team_path: format!("{region}/gamedata/excel/handbook_team_table.json"),
+            range_table_path: format!("{region}/gamedata/excel/range_table.json"),
+            item_table_path: format!("{region}/gamedata/excel/item_table.json"),
+            stage_table_path: format!("{region}/gamedata/excel/stage_table.json"),
+            building_data_path: format!("{region}/gamedata/excel/building_data.json"),
+            battle_equip_table_path: format!("{region}/gamedata/excel/battle_equip_table.json"),
+            favor_table_path: format!("{region}/gamedata/excel/favor_table.json"),
         }
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct SourceDescriptor {
     pub repo: &'static str,
     pub branch: &'static str,
-    pub character_path: &'static str,
-    pub skill_path: &'static str,
-    pub gamedata_const_path: &'static str,
-    pub uniequip_path: &'static str,
-    pub handbook_team_path: &'static str,
-    pub range_table_path: &'static str,
-    pub item_table_path: &'static str,
-    pub stage_table_path: &'static str,
-    pub building_data_path: &'static str,
-    pub battle_equip_table_path: &'static str,
-    pub favor_table_path: &'static str,
+    pub character_path: String,
+    pub skill_path: String,
+    pub gamedata_const_path: String,
+    pub uniequip_path: String,
+    pub handbook_team_path: String,
+    pub range_table_path: String,
+    pub item_table_path: String,
+    pub stage_table_path: String,
+    pub building_data_path: String,
+    pub battle_equip_table_path: String,
+    pub favor_table_path: String,
 }
 
 impl SourceDescriptor {

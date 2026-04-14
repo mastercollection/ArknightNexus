@@ -45,17 +45,17 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         .user_agent("ArknightsNexus/0.1.0")
         .build()?;
 
-    let character_url = descriptor.raw_url(descriptor.character_path);
-    let skill_url = descriptor.raw_url(descriptor.skill_path);
-    let gamedata_const_url = descriptor.raw_url(descriptor.gamedata_const_path);
-    let uniequip_url = descriptor.raw_url(descriptor.uniequip_path);
-    let handbook_team_url = descriptor.raw_url(descriptor.handbook_team_path);
-    let range_table_url = descriptor.raw_url(descriptor.range_table_path);
-    let item_table_url = descriptor.raw_url(descriptor.item_table_path);
-    let stage_table_url = descriptor.raw_url(descriptor.stage_table_path);
-    let building_data_url = descriptor.raw_url(descriptor.building_data_path);
-    let battle_equip_table_url = descriptor.raw_url(descriptor.battle_equip_table_path);
-    let favor_table_url = descriptor.raw_url(descriptor.favor_table_path);
+    let character_url = descriptor.raw_url(&descriptor.character_path);
+    let skill_url = descriptor.raw_url(&descriptor.skill_path);
+    let gamedata_const_url = descriptor.raw_url(&descriptor.gamedata_const_path);
+    let uniequip_url = descriptor.raw_url(&descriptor.uniequip_path);
+    let handbook_team_url = descriptor.raw_url(&descriptor.handbook_team_path);
+    let range_table_url = descriptor.raw_url(&descriptor.range_table_path);
+    let item_table_url = descriptor.raw_url(&descriptor.item_table_path);
+    let stage_table_url = descriptor.raw_url(&descriptor.stage_table_path);
+    let building_data_url = descriptor.raw_url(&descriptor.building_data_path);
+    let battle_equip_table_url = descriptor.raw_url(&descriptor.battle_equip_table_path);
+    let favor_table_url = descriptor.raw_url(&descriptor.favor_table_path);
 
     let character_payload = fetch_json(&client, &character_url).await?;
     let skill_payload = fetch_json(&client, &skill_url).await?;
