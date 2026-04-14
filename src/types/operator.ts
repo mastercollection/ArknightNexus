@@ -21,6 +21,7 @@ export interface ItemEntry {
   obtainApproach: string
   classifyType: string
   itemType: string
+  ownedCount: number
   stageDropList: ItemStageDrop[]
   buildingProductList: ItemBuildingProduct[]
 }

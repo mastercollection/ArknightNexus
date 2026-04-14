@@ -75,6 +75,19 @@ pub struct RemoveUserPlanOperatorRequest {
     pub operator_id: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SaveUserItemCountRequest {
+    pub item_id: String,
+    pub count: u32,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportUserItemCountsRequest {
+    pub content: String,
+}
+
 #[tauri::command]
 pub async fn sync_region_data(
     app: AppHandle,
@@ -210,6 +223,22 @@ pub fn remove_user_plan_operator(
     request: RemoveUserPlanOperatorRequest,
 ) -> Result<bool, String> {
     service::remove_user_plan_operator(&app, &request.operator_id).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn save_user_item_count(
+    app: AppHandle,
+    request: SaveUserItemCountRequest,
+) -> Result<u32, String> {
+    service::save_user_item_count(&app, &request.item_id, request.count).map_err(map_error)
+}
+
+#[tauri::command]
+pub fn import_user_item_counts(
+    app: AppHandle,
+    request: ImportUserItemCountsRequest,
+) -> Result<usize, String> {
+    service::import_user_item_counts(&app, &request.content).map_err(map_error)
 }
 
 fn parse_region(value: &str) -> Result<RegionCode, String> {

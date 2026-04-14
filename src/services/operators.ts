@@ -597,6 +597,29 @@ export async function listItems(
   })
 }
 
+export async function saveUserItemCount(itemId: string, count: number): Promise<number> {
+  if (!canUseTauri())
+    return count
+
+  return invoke<number>('save_user_item_count', {
+    request: {
+      itemId,
+      count,
+    },
+  })
+}
+
+export async function importUserItemCounts(content: string): Promise<number> {
+  if (!canUseTauri())
+    return 0
+
+  return invoke<number>('import_user_item_counts', {
+    request: {
+      content,
+    },
+  })
+}
+
 export async function listBuildingFormulas(
   region: RegionCode = DEFAULT_REGION,
 ): Promise<BuildingFormulaBundle> {

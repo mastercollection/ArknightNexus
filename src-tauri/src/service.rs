@@ -145,7 +145,7 @@ pub async fn sync_region_data(app: &AppHandle, region: RegionCode) -> Result<Syn
         .into_values()
         .filter_map(|stage| {
             let stage_id = stage.stage_id.trim();
-            let code = stage.code.trim();
+            let code = stage.code.as_deref().unwrap_or("").trim();
 
             if stage_id.is_empty() || code.is_empty() {
                 None
@@ -246,6 +246,7 @@ pub fn list_items(
 ) -> Result<Vec<ItemDto>, AppError> {
     let snapshot = load_snapshot(app, region)?;
     let normalized_classify_type = classify_type.map(|value| value.trim().to_lowercase());
+    let item_counts = user_store::load_item_counts(app)?;
 
     Ok(snapshot
         .items
@@ -257,10 +258,16 @@ pub fn list_items(
 
             normalized_classify_type
                 .as_ref()
-                .map(|value| item.classify_type.to_lowercase() == *value)
+                .map(|value| {
+                    item.classify_type.to_lowercase() == *value
+                        || item.item_type.eq_ignore_ascii_case("GOLD")
+                })
                 .unwrap_or(true)
         })
-        .map(cached_item_to_dto)
+        .map(|item| {
+            let owned_count = item_counts.get(&item.item_id).copied().unwrap_or_default();
+            cached_item_to_dto(item, owned_count)
+        })
         .collect())
 }
 
@@ -396,6 +403,14 @@ pub fn save_user_plan_operator(
 
 pub fn remove_user_plan_operator(app: &AppHandle, operator_id: &str) -> Result<bool, AppError> {
     user_store::remove_plan_operator(app, operator_id)
+}
+
+pub fn save_user_item_count(app: &AppHandle, item_id: &str, count: u32) -> Result<u32, AppError> {
+    user_store::save_item_count(app, item_id, count)
+}
+
+pub fn import_user_item_counts(app: &AppHandle, content: &str) -> Result<usize, AppError> {
+    user_store::import_item_counts_json(app, content)
 }
 
 struct FetchedJson {
@@ -888,7 +903,7 @@ fn cached_skill_level_to_dto(level: CachedOperatorSkillLevel) -> OperatorSkillLe
     }
 }
 
-fn cached_item_to_dto(item: CachedItem) -> ItemDto {
+fn cached_item_to_dto(item: CachedItem, owned_count: u32) -> ItemDto {
     ItemDto {
         item_id: item.item_id,
         name: item.name,
@@ -900,6 +915,7 @@ fn cached_item_to_dto(item: CachedItem) -> ItemDto {
         obtain_approach: item.obtain_approach,
         classify_type: item.classify_type,
         item_type: item.item_type,
+        owned_count,
         stage_drop_list: item
             .stage_drop_list
             .into_iter()

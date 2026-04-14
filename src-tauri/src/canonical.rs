@@ -220,6 +220,8 @@ pub struct ItemDto {
     pub classify_type: String,
     pub item_type: String,
     #[serde(default)]
+    pub owned_count: u32,
+    #[serde(default)]
     pub stage_drop_list: Vec<ItemStageDropDto>,
     #[serde(default)]
     pub building_product_list: Vec<ItemBuildingProductDto>,

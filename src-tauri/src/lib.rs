@@ -67,7 +67,9 @@ pub fn run() {
             commands::import_user_data,
             commands::save_user_plan_selection,
             commands::save_user_plan_operator,
-            commands::remove_user_plan_operator
+            commands::remove_user_plan_operator,
+            commands::save_user_item_count,
+            commands::import_user_item_counts
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

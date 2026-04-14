@@ -14,5 +14,5 @@ pub struct RawStageTable {
 pub struct RawStageEntry {
     pub stage_id: String,
     #[serde(default)]
-    pub code: String,
+    pub code: Option<String>,
 }

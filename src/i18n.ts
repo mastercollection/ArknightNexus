@@ -230,6 +230,21 @@ const messages = {
         title: '아이템 목록',
         description: '동기화된 아이템 데이터를 지역 기준으로 확인합니다.',
       },
+      actions: {
+        importJson: 'JSON 임포트',
+        applyImport: '임포트 적용',
+      },
+      editor: {
+        currentCount: '현재 보유 수량',
+      },
+      importDialog: {
+        title: '아이템 수량 JSON 임포트',
+        description: '아이템 ID와 수량을 담은 JSON 객체를 붙여넣으면 기존 수량을 덮어씁니다.',
+        placeholder: 'MAA 창고 인식 Arkntools 내보내기를 선택해주세요.',
+      },
+      messages: {
+        importSuccess: '{count}개 아이템 수량을 반영했습니다.',
+      },
       search: {
         placeholder: '이름, 타입, 획득처 검색',
       },
@@ -353,6 +368,11 @@ const messages = {
         showOriginalMaterials: '원본 재료 보기',
         runs: '{count}회 클리어',
         totalSanity: '{count} 이성 소모',
+        requiredCount: '필요 {count}',
+        shortage: '부족 {count}',
+        shortageOnly: '부족 {shortage}',
+        ownedShortage: '보유 {owned} / 부족 {shortage}',
+        requiredShortage: '필요 {required} / 부족 {shortage}',
         routeLabel: '{current} → {target}',
         openDetail: '상세 열기',
         miscTier: '기타',
@@ -586,6 +606,21 @@ const messages = {
       topBar: {
         title: '道具列表',
         description: '按当前地区查看已同步的道具数据。',
+      },
+      actions: {
+        importJson: '导入 JSON',
+        applyImport: '应用导入',
+      },
+      editor: {
+        currentCount: '当前持有数量',
+      },
+      importDialog: {
+        title: '导入道具数量 JSON',
+        description: '粘贴包含道具 ID 和数量的 JSON 对象后，会覆盖已有数量。',
+        placeholder: '请选择 MAA 仓库识别 Arkntools 导出内容。',
+      },
+      messages: {
+        importSuccess: '已应用 {count} 个道具数量。',
       },
       search: {
         placeholder: '搜索名称、类型、获取途径',
@@ -889,6 +924,21 @@ const messages = {
         title: 'アイテム一覧',
         description: '同期済みアイテムデータを地域基準で確認します。',
       },
+      actions: {
+        importJson: 'JSON インポート',
+        applyImport: 'インポート適用',
+      },
+      editor: {
+        currentCount: '現在の所持数',
+      },
+      importDialog: {
+        title: 'アイテム所持数 JSON インポート',
+        description: 'アイテム ID と所持数を含む JSON オブジェクトを貼り付けると、既存の所持数を上書きします。',
+        placeholder: 'MAA 倉庫認識 Arkntools のエクスポート内容を選択してください。',
+      },
+      messages: {
+        importSuccess: '{count} 件のアイテム所持数を反映しました。',
+      },
       search: {
         placeholder: '名前、タイプ、入手先で検索',
       },
@@ -1187,6 +1237,21 @@ const messages = {
       topBar: {
         title: '道具列表',
         description: '依照目前地區查看已同步的道具資料。',
+      },
+      actions: {
+        importJson: '匯入 JSON',
+        applyImport: '套用匯入',
+      },
+      editor: {
+        currentCount: '目前持有數量',
+      },
+      importDialog: {
+        title: '道具數量 JSON 匯入',
+        description: '貼上包含道具 ID 與數量的 JSON 物件後，會覆蓋現有數量。',
+        placeholder: '請選擇 MAA 倉庫辨識 Arkntools 匯出內容。',
+      },
+      messages: {
+        importSuccess: '已套用 {count} 筆道具數量。',
       },
       search: {
         placeholder: '搜尋名稱、類型、獲取方式',
@@ -1490,6 +1555,21 @@ const messages = {
         title: 'Item List',
         description: 'Browse synced item data for the current region.',
       },
+      actions: {
+        importJson: 'Import JSON',
+        applyImport: 'Apply Import',
+      },
+      editor: {
+        currentCount: 'Current Owned Count',
+      },
+      importDialog: {
+        title: 'Import Item Count JSON',
+        description: 'Paste a JSON object of item IDs and counts to overwrite existing counts.',
+        placeholder: 'Please select the MAA warehouse recognition Arkntools export.',
+      },
+      messages: {
+        importSuccess: 'Applied counts for {count} items.',
+      },
       search: {
         placeholder: 'Search by name, type, or obtain method',
       },
@@ -1613,6 +1693,11 @@ const messages = {
         showOriginalMaterials: 'Show Original Materials',
         runs: '{count} clears',
         totalSanity: '{count} sanity',
+        requiredCount: 'Required {count}',
+        shortage: 'Short {count}',
+        shortageOnly: 'Short {shortage}',
+        ownedShortage: 'Owned {owned} / Short {shortage}',
+        requiredShortage: 'Required {required} / Short {shortage}',
         routeLabel: '{current} → {target}',
         openDetail: 'Open Detail',
         miscTier: 'Misc',

@@ -11,7 +11,7 @@ use crate::canonical::{
     UserPlanDto, UserPlanModuleDto, UserPlanOperatorDto, UserPlanOperatorStateDto,
 };
 
-pub const USER_DATA_SCHEMA_VERSION: u32 = 2;
+pub const USER_DATA_SCHEMA_VERSION: u32 = 3;
 const MAX_USER_DATA_IMPORT_BYTES: usize = 1024 * 1024;
 
 const MAX_ELITE: u8 = 2;
@@ -30,6 +30,8 @@ pub struct UserData {
     pub selected_operator_ids: Vec<String>,
     #[serde(default)]
     pub operator_plans: Vec<UserPlanOperatorDto>,
+    #[serde(default)]
+    pub item_counts: BTreeMap<String, u32>,
 }
 
 pub fn load_user_data(app: &AppHandle) -> Result<UserData, AppError> {
@@ -89,6 +91,11 @@ pub fn load_favorites(app: &AppHandle) -> Result<Vec<String>, AppError> {
     let mut data = load_user_data(app)?;
     data.favorites.retain(|value| !value.trim().is_empty());
     Ok(data.favorites)
+}
+
+pub fn load_item_counts(app: &AppHandle) -> Result<BTreeMap<String, u32>, AppError> {
+    let data = load_user_data(app)?;
+    Ok(sanitize_item_counts(data.item_counts))
 }
 
 pub fn toggle_favorite(app: &AppHandle, operator_id: &str) -> Result<bool, AppError> {
@@ -204,12 +211,62 @@ pub fn remove_plan_operator(app: &AppHandle, operator_id: &str) -> Result<bool, 
     Ok(changed)
 }
 
+pub fn save_item_count(app: &AppHandle, item_id: &str, count: u32) -> Result<u32, AppError> {
+    let item_id = sanitize_id(item_id);
+    if item_id.is_empty() {
+        return Err(AppError::InvalidInput("itemId".to_string()));
+    }
+
+    let mut data = load_user_data(app)?;
+    data.schema_version = USER_DATA_SCHEMA_VERSION;
+    data.item_counts = sanitize_item_counts(data.item_counts);
+
+    if count == 0 {
+        data.item_counts.remove(&item_id);
+    } else {
+        data.item_counts.insert(item_id, count);
+    }
+
+    save_user_data(app, &data)?;
+    Ok(count)
+}
+
+pub fn import_item_counts_json(app: &AppHandle, content: &str) -> Result<usize, AppError> {
+    let trimmed = content.trim();
+    if trimmed.is_empty() || trimmed.len() > MAX_USER_DATA_IMPORT_BYTES {
+        return Err(AppError::InvalidInput("content".to_string()));
+    }
+
+    let parsed = serde_json::from_str::<BTreeMap<String, u32>>(trimmed).map_err(|error| {
+        AppError::Serde {
+            context: "item counts 가져오기".to_string(),
+            message: error.to_string(),
+        }
+    })?;
+    let imported_counts = sanitize_item_counts(parsed);
+    if imported_counts.is_empty() {
+        return Err(AppError::InvalidInput("content".to_string()));
+    }
+
+    let mut data = load_user_data(app)?;
+    data.schema_version = USER_DATA_SCHEMA_VERSION;
+    data.item_counts = sanitize_item_counts(data.item_counts);
+
+    for (item_id, count) in imported_counts.iter() {
+        data.item_counts.insert(item_id.clone(), *count);
+    }
+
+    save_user_data(app, &data)?;
+    Ok(imported_counts.len())
+}
+
 fn default_user_data() -> UserData {
     UserData {
         schema_version: USER_DATA_SCHEMA_VERSION,
         favorites: Vec::new(),
         selected_operator_ids: Vec::new(),
         operator_plans: Vec::new(),
+        item_counts: BTreeMap::new(),
     }
 }
 
@@ -228,6 +285,7 @@ fn normalize_user_data(data: UserData) -> Result<UserData, AppError> {
         favorites,
         selected_operator_ids,
         operator_plans: operator_plans.into_values().collect(),
+        item_counts: sanitize_item_counts(data.item_counts),
     })
 }
 
@@ -255,6 +313,20 @@ fn sanitize_ids(values: Vec<String>) -> Vec<String> {
 
 fn sanitize_id(value: &str) -> String {
     value.trim().to_string()
+}
+
+fn sanitize_item_counts(values: BTreeMap<String, u32>) -> BTreeMap<String, u32> {
+    values
+        .into_iter()
+        .filter_map(|(key, count)| {
+            let normalized = sanitize_id(&key);
+            if normalized.is_empty() || count == 0 {
+                None
+            } else {
+                Some((normalized, count))
+            }
+        })
+        .collect()
 }
 
 fn validate_plan(plan: UserPlanOperatorDto) -> Result<UserPlanOperatorDto, AppError> {

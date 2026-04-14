@@ -195,6 +195,10 @@ function formatNumber(value: number) {
   return numberFormatter.format(value)
 }
 
+function getShortageItemCount(itemId: string, requiredCount: number) {
+  return Math.max(0, requiredCount - (itemsById.value[itemId]?.ownedCount ?? 0))
+}
+
 function openItemDetail(itemId: string) {
   router.push(`/items/${itemId}`)
 }
@@ -496,6 +500,14 @@ export default {
                   />
                 </button>
                 <strong class="text-[1.2rem] text-white font-700">{{ formatNumber(farmingEstimate?.lmd ?? 0) }}</strong>
+                <span
+                  v-if="getShortageItemCount(farmingEstimate?.lmdItem?.id ?? '4001', farmingEstimate?.lmd ?? 0) > 0"
+                  class="text-[0.76rem] text-[rgba(255,172,172,0.86)] font-700"
+                >
+                  {{ t('planPage.summary.shortageOnly', {
+                    shortage: formatNumber(getShortageItemCount(farmingEstimate?.lmdItem?.id ?? '4001', farmingEstimate?.lmd ?? 0)),
+                  }) }}
+                </span>
               </article>
             </div>
 
@@ -546,6 +558,7 @@ export default {
               :formulas="buildingFormulas"
               columns-class="grid-cols-2 gap-2"
               :expanded="detailExpandRecipes"
+              show-shortage
               @toggle-expand="toggleDetailExpandRecipes"
             />
           </section>
