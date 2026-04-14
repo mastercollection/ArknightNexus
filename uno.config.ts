@@ -31,7 +31,7 @@ export default defineConfig({
     },
   },
   shortcuts: {
-    'page-grid': 'grid gap-4 md:gap-5',
+    'page-grid': 'grid gap-4 pb-10 md:gap-5 md:pb-12',
     'panel':
       'border border-line rounded-panel bg-[linear-gradient(180deg,rgba(16,20,28,0.96),rgba(9,12,18,0.96))] shadow-glass backdrop-blur-[18px]',
     'panel-soft':

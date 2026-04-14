@@ -198,5 +198,17 @@ export default {
         </button>
       </div>
     </section>
+
+    <section class="panel-soft grid gap-2.5 px-4 py-4 text-sm text-slate-300/88">
+      <p class="eyebrow">
+        {{ t('home.notice.eyebrow') }}
+      </p>
+      <strong class="text-sm text-white">
+        {{ t('home.notice.title') }}
+      </strong>
+      <p class="leading-6">
+        {{ t('home.notice.body') }}
+      </p>
+    </section>
   </section>
 </template>

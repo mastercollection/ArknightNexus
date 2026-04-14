@@ -181,6 +181,12 @@ const messages = {
       states: {
         loadingOperators: '오퍼레이터 데이터를 불러오는 중입니다.',
       },
+      notice: {
+        eyebrow: '권리 안내',
+        title: '비공식 팬 프로젝트',
+        body:
+          'Arknights Nexus는 비공식 팬 앱입니다. 아크나이츠 관련 명칭과 이미지, 게임 자산의 권리는 각 공식 권리자에게 있으며, 권리자 요청이 있으면 해당 자료는 조정 또는 제거될 수 있습니다.',
+      },
       settings: {
         title: '홈 설정',
         pageDescription: '앱 유지보수와 진단 정보를 한 곳에서 관리합니다.',
@@ -535,6 +541,12 @@ const messages = {
       states: {
         loadingOperators: '正在加载干员数据。',
       },
+      notice: {
+        eyebrow: '权利说明',
+        title: '非官方同人项目',
+        body:
+          'Arknights Nexus 是非官方同人应用。明日方舟相关名称、图像与游戏素材的权利归各官方权利人所有；如权利人提出要求，相关资料可能会被调整或移除。',
+      },
       settings: {
         title: '首页设置',
         pageDescription: '在一个页面中管理应用维护与诊断信息。',
@@ -826,6 +838,12 @@ const messages = {
       },
       states: {
         loadingOperators: 'オペレーターデータを読み込み中です。',
+      },
+      notice: {
+        eyebrow: '権利案内',
+        title: '非公式ファンプロジェクト',
+        body:
+          'Arknights Nexus は非公式のファンアプリです。アークナイツ関連の名称、画像、ゲーム資産の権利は各公式権利者に帰属し、権利者から要請があれば該当資料は調整または削除される場合があります。',
       },
       settings: {
         title: 'ホーム設定',
@@ -1122,6 +1140,12 @@ const messages = {
       states: {
         loadingOperators: '正在載入幹員資料。',
       },
+      notice: {
+        eyebrow: '權利說明',
+        title: '非官方同人專案',
+        body:
+          'Arknights Nexus 是非官方同人應用。明日方舟相關名稱、圖像與遊戲素材的權利歸各官方權利人所有；若權利人提出要求，相關資料可能會被調整或移除。',
+      },
       settings: {
         title: '首頁設定',
         pageDescription: '在同一頁面管理 App 維護與診斷資訊。',
@@ -1415,6 +1439,12 @@ const messages = {
       },
       states: {
         loadingOperators: 'Loading operator data.',
+      },
+      notice: {
+        eyebrow: 'Rights Notice',
+        title: 'Unofficial Fan Project',
+        body:
+          'Arknights Nexus is an unofficial fan app. All Arknights-related names, images, and in-game assets belong to their respective rights holders, and related material may be adjusted or removed upon request.',
       },
       settings: {
         title: 'Home Settings',
