@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 25;
+pub const REGION_SNAPSHOT_SCHEMA_VERSION: u32 = 26;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -25,6 +25,8 @@ pub struct CachedOperatorSummary {
     pub nations: Vec<String>,
     #[serde(default)]
     pub groups: Vec<String>,
+    #[serde(default)]
+    pub ba_tags: Vec<String>,
     pub thumbnail_hue: u16,
 }
 
@@ -353,6 +355,8 @@ pub struct CachedOperator {
     pub quote: String,
     #[serde(default)]
     pub tags: Vec<String>,
+    #[serde(default)]
+    pub ba_tags: Vec<String>,
     #[serde(default)]
     pub traits: Vec<CachedOperatorTrait>,
     #[serde(default)]

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::cache_model::{
     CachedBlackboardEntry, CachedBuildingCost, CachedBuildingRequireRoom, CachedItem,
@@ -364,7 +364,7 @@ fn normalize_operator(
                         items_by_id,
                     )
                 })
-                .collect()
+                .collect::<Vec<_>>()
         })
         .unwrap_or_default();
 
@@ -378,6 +378,14 @@ fn normalize_operator(
         .into_iter()
         .filter(|value| !value.trim().is_empty())
         .collect::<Vec<_>>();
+    let ba_tags = collect_ba_tags(
+        gamedata_const,
+        [character.description.as_deref(), character.item_desc.as_deref()],
+        &traits,
+        &talents,
+        &normalized_skills,
+        &modules,
+    );
 
     let archetype_description = character
         .description
@@ -411,6 +419,7 @@ fn normalize_operator(
         groups,
         quote,
         tags,
+        ba_tags,
         traits,
         talents,
         potentials,
@@ -425,6 +434,133 @@ fn normalize_operator(
         stats,
         skills: normalized_skills,
     })
+}
+
+fn collect_ba_tags(
+    gamedata_const: &RawGameDataConst,
+    character_texts: [Option<&str>; 2],
+    traits: &[CachedOperatorTrait],
+    talents: &[CachedOperatorTalent],
+    skills: &[CachedOperatorSkill],
+    modules: &[CachedOperatorModule],
+) -> Vec<String> {
+    let ba_terms = gamedata_const
+        .term_description_dict
+        .values()
+        .filter_map(|term| {
+            let term_id = term.term_id.trim();
+            let term_name = term.term_name.trim();
+
+            if term_id.starts_with("ba.") && !term_name.is_empty() {
+                Some((term_id, term_name))
+            } else {
+                None
+            }
+        })
+        .collect::<HashMap<_, _>>();
+
+    if ba_terms.is_empty() {
+        return Vec::new();
+    }
+
+    let mut resolved = Vec::new();
+    let mut seen = HashSet::new();
+
+    for text in character_texts.into_iter().flatten() {
+        extend_ba_tags(&mut resolved, &mut seen, &ba_terms, text);
+    }
+
+    for trait_item in traits {
+        extend_ba_tags(&mut resolved, &mut seen, &ba_terms, &trait_item.description);
+    }
+
+    for talent in talents {
+        extend_ba_tags(&mut resolved, &mut seen, &ba_terms, &talent.description);
+    }
+
+    for skill in skills {
+        extend_ba_tags(&mut resolved, &mut seen, &ba_terms, &skill.description);
+        for level in &skill.levels {
+            extend_ba_tags(&mut resolved, &mut seen, &ba_terms, &level.description);
+        }
+    }
+
+    for module in modules {
+        extend_ba_tags(&mut resolved, &mut seen, &ba_terms, &module.uni_equip_desc);
+
+        if let Some(description) = module.special_equip_desc.as_deref() {
+            extend_ba_tags(&mut resolved, &mut seen, &ba_terms, description);
+        }
+
+        for phase in &module.battle_phases {
+            for part in &phase.parts {
+                for candidate in &part.trait_candidates {
+                    extend_ba_tags(&mut resolved, &mut seen, &ba_terms, &candidate.description);
+                }
+
+                for candidate in &part.talent_candidates {
+                    extend_ba_tags(&mut resolved, &mut seen, &ba_terms, &candidate.description);
+                }
+            }
+        }
+    }
+
+    resolved
+}
+
+fn extend_ba_tags(
+    resolved: &mut Vec<String>,
+    seen: &mut HashSet<String>,
+    ba_terms: &HashMap<&str, &str>,
+    text: &str,
+) {
+    for term_id in extract_ba_term_ids(text) {
+        let Some(term_name) = ba_terms.get(term_id.as_str()) else {
+            continue;
+        };
+
+        if seen.insert((*term_name).to_string()) {
+            resolved.push((*term_name).to_string());
+        }
+    }
+}
+
+fn extract_ba_term_ids(text: &str) -> Vec<String> {
+    let bytes = text.as_bytes();
+    let mut cursor = 0;
+    let mut result = Vec::new();
+
+    while cursor < bytes.len() {
+        let marker = bytes[cursor];
+        if marker != b'@' && marker != b'$' {
+            cursor += 1;
+            continue;
+        }
+
+        let start = cursor + 1;
+        if start + 3 >= bytes.len() || &bytes[start..start + 3] != b"ba." {
+            cursor += 1;
+            continue;
+        }
+
+        let mut end = start + 3;
+        while end < bytes.len() {
+            let ch = bytes[end];
+            if ch.is_ascii_alphanumeric() || ch == b'_' || ch == b'.' {
+                end += 1;
+            } else {
+                break;
+            }
+        }
+
+        if end > start + 3 {
+            result.push(text[start..end].to_string());
+        }
+
+        cursor = end;
+    }
+
+    result
 }
 
 fn normalize_module(

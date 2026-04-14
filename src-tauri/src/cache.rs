@@ -12,6 +12,15 @@ use crate::canonical::RegionSyncStatus;
 use crate::data_sources::RegionCode;
 use crate::errors::AppError;
 
+fn replace_file(temp_path: &PathBuf, target_path: &PathBuf) -> Result<(), AppError> {
+    if target_path.exists() {
+        fs::remove_file(target_path)?;
+    }
+
+    fs::rename(temp_path, target_path)?;
+    Ok(())
+}
+
 pub fn load_snapshot(app: &AppHandle, region: RegionCode) -> Result<RegionSnapshot, AppError> {
     let path = snapshot_path(app, region)?;
     if !path.exists() {
@@ -135,7 +144,7 @@ pub fn save_snapshot(
         message: error.to_string(),
     })?;
     fs::write(&snapshot_temp, snapshot_bytes)?;
-    fs::rename(snapshot_temp, &snapshot_path)?;
+    replace_file(&snapshot_temp, &snapshot_path)?;
 
     let summary_snapshot = RegionSummarySnapshot {
         schema_version: REGION_SNAPSHOT_SCHEMA_VERSION,
@@ -151,7 +160,7 @@ pub fn save_snapshot(
             message: error.to_string(),
         })?;
     fs::write(&summary_snapshot_temp, summary_bytes)?;
-    fs::rename(summary_snapshot_temp, &summary_snapshot_path)?;
+    replace_file(&summary_snapshot_temp, &summary_snapshot_path)?;
 
     let status = RegionSyncStatus {
         region: region.as_str().to_string(),
@@ -167,7 +176,7 @@ pub fn save_snapshot(
         message: error.to_string(),
     })?;
     fs::write(&status_temp, status_bytes)?;
-    fs::rename(status_temp, &status_path)?;
+    replace_file(&status_temp, &status_path)?;
 
     Ok(snapshot)
 }
@@ -204,7 +213,7 @@ pub fn save_terms(
         message: error.to_string(),
     })?;
     fs::write(&temp_path, bytes)?;
-    fs::rename(temp_path, path)?;
+    replace_file(&temp_path, &path)?;
     Ok(())
 }
 
@@ -275,7 +284,7 @@ fn save_summary_snapshot(
         message: error.to_string(),
     })?;
     fs::write(&temp_path, bytes)?;
-    fs::rename(temp_path, path)?;
+    replace_file(&temp_path, &path)?;
     Ok(())
 }
 
@@ -289,6 +298,7 @@ fn cached_operator_to_summary(operator: &CachedOperator) -> CachedOperatorSummar
         teams: operator.teams.clone(),
         nations: operator.nations.clone(),
         groups: operator.groups.clone(),
+        ba_tags: operator.ba_tags.clone(),
         thumbnail_hue: operator.thumbnail_hue,
     }
 }

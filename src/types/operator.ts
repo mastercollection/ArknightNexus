@@ -7,6 +7,7 @@ export interface OperatorSummary {
   teams: string[]
   nations: string[]
   groups: string[]
+  baTags?: string[]
   thumbnailHue: number
 }
 

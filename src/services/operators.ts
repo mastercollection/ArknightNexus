@@ -48,6 +48,7 @@ function toSummary(operator: OperatorDetail): OperatorSummary {
     teams: operator.teams,
     nations: operator.nations,
     groups: operator.groups,
+    baTags: operator.baTags ?? [],
     thumbnailHue: operator.thumbnailHue,
   }
 }
@@ -231,7 +232,14 @@ function listFallbackOperators(filters: OperatorFilters = {}): OperatorSummary[]
 }
 
 function getFallbackOperatorById(id: string): OperatorDetail | undefined {
-  return fallbackOperators.find(operator => operator.id === id)
+  const operator = fallbackOperators.find(operator => operator.id === id)
+  if (!operator)
+    return undefined
+
+  return {
+    ...operator,
+    baTags: operator.baTags ?? [],
+  }
 }
 
 async function ensureRegionReady(region: RegionCode) {

@@ -891,8 +891,19 @@ export default {
             {{ operator.quote }}
           </p>
 
-          <div class="flex flex-wrap gap-2 pt-1">
-            <span v-for="tag in operator.tags" :key="tag" class="chip">{{ tag }}</span>
+          <div class="grid gap-2 pt-1">
+            <div v-if="operator.tags.length" class="flex flex-wrap gap-2">
+              <span v-for="tag in operator.tags" :key="tag" class="chip">{{ tag }}</span>
+            </div>
+            <div v-if="(operator.baTags ?? []).length" class="flex flex-wrap gap-2">
+              <span
+                v-for="tag in operator.baTags ?? []"
+                :key="`ba-${tag}`"
+                class="chip border-2 border-[rgba(94,182,255,0.52)] bg-[rgba(28,53,96,0.14)] text-[rgba(224,239,255,0.96)] shadow-[0_0_0_1px_rgba(94,182,255,0.1)_inset]"
+              >
+                {{ tag }}
+              </span>
+            </div>
           </div>
         </div>
 

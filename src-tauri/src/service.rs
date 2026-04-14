@@ -597,6 +597,7 @@ fn cached_summary_to_dto(operator: &CachedOperatorSummary) -> OperatorSummaryDto
         teams: operator.teams.clone(),
         nations: operator.nations.clone(),
         groups: operator.groups.clone(),
+        ba_tags: operator.ba_tags.clone(),
         thumbnail_hue: operator.thumbnail_hue,
     }
 }
@@ -615,6 +616,7 @@ fn cached_to_detail(operator: CachedOperator) -> OperatorDetailDto {
         thumbnail_hue: operator.thumbnail_hue,
         quote: operator.quote,
         tags: operator.tags,
+        ba_tags: operator.ba_tags,
         traits: operator
             .traits
             .into_iter()

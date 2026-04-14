@@ -14,6 +14,8 @@ pub struct OperatorSummaryDto {
     pub nations: Vec<String>,
     #[serde(default)]
     pub groups: Vec<String>,
+    #[serde(default)]
+    pub ba_tags: Vec<String>,
     pub thumbnail_hue: u16,
 }
 
@@ -360,6 +362,8 @@ pub struct OperatorDetailDto {
     pub thumbnail_hue: u16,
     pub quote: String,
     pub tags: Vec<String>,
+    #[serde(default)]
+    pub ba_tags: Vec<String>,
     #[serde(default)]
     pub traits: Vec<OperatorTraitDto>,
     #[serde(default)]

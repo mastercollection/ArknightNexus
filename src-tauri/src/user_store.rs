@@ -19,6 +19,15 @@ const MAX_SKILL_LEVEL: u8 = 10;
 const MAX_MODULE_STAGE: u8 = 3;
 const MAX_PLAN_LEVEL: u32 = 90;
 
+fn replace_file(temp_path: &PathBuf, target_path: &PathBuf) -> Result<(), AppError> {
+    if target_path.exists() {
+        fs::remove_file(target_path)?;
+    }
+
+    fs::rename(temp_path, target_path)?;
+    Ok(())
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UserData {
@@ -59,7 +68,7 @@ pub fn save_user_data(app: &AppHandle, data: &UserData) -> Result<(), AppError> 
         message: error.to_string(),
     })?;
     fs::write(&temp_path, bytes)?;
-    fs::rename(temp_path, path)?;
+    replace_file(&temp_path, &path)?;
     Ok(())
 }
 

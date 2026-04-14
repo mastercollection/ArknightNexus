@@ -15,6 +15,7 @@ const filters = reactive({
   affiliation: null as string | null,
   rarity: null as number | null,
   profession: null as string | null,
+  baTags: [] as string[],
 })
 
 const router = useRouter()
@@ -42,6 +43,7 @@ const options = computed(() => {
         ...operator.groups,
       ]),
     )).sort(),
+    baTags: Array.from(new Set(allOperators.value.flatMap(operator => operator.baTags ?? []))).sort(),
     rarities: Array.from(new Set(allOperators.value.map(operator => operator.rarity))).sort((a, b) => b - a),
     professions: Array.from(new Set(allOperators.value.map(operator => operator.profession))).sort(),
   }
@@ -57,6 +59,7 @@ const activeFilterChips = computed(() => {
     chips.push(`${filters.rarity} ★`)
   if (filters.profession)
     chips.push(translateProfession(filters.profession))
+  chips.push(...filters.baTags.map(tag => `${t('operatorsList.filters.baTags')}: ${tag}`))
   return chips
 })
 
@@ -81,8 +84,9 @@ function applyLocalFilters() {
 
     const matchesRarity = !filters.rarity || operator.rarity === filters.rarity
     const matchesProfession = !filters.profession || operator.profession === filters.profession
+    const matchesBaTags = filters.baTags.every(tag => (operator.baTags ?? []).includes(tag))
 
-    return matchesQuery && matchesAffiliation && matchesRarity && matchesProfession
+    return matchesQuery && matchesAffiliation && matchesRarity && matchesProfession && matchesBaTags
   })
 }
 const {
@@ -119,7 +123,7 @@ async function loadOperators() {
   }
 }
 
-watch(() => [filters.query, filters.affiliation, filters.rarity, filters.profession], () => {
+watch(() => [filters.query, filters.affiliation, filters.rarity, filters.profession, filters.baTags], () => {
   applyLocalFilters()
 })
 
@@ -137,6 +141,7 @@ function clearFilters() {
   filters.affiliation = null
   filters.rarity = null
   filters.profession = null
+  filters.baTags = []
 }
 
 function handleScroll() {
@@ -365,6 +370,25 @@ export default {
                 :key="profession"
                 :label="translateProfession(profession)"
                 :value="profession"
+              />
+            </el-select>
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.9rem] text-[rgba(230,236,250,0.76)]">{{ t('operatorsList.filters.baTags') }}</span>
+            <el-select
+              v-model="filters.baTags"
+              :placeholder="t('operatorsList.filters.baTags')"
+              multiple
+              filterable
+              collapse-tags
+              collapse-tags-tooltip
+            >
+              <el-option
+                v-for="tag in options.baTags"
+                :key="tag"
+                :label="tag"
+                :value="tag"
               />
             </el-select>
           </label>
